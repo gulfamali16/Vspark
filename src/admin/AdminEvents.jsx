@@ -3,7 +3,7 @@ import { Plus, Edit2, Trash2, Calendar, X, Loader, Save } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import Toast from '../components/Toast'
 
-const empty = { title: '', description: '', date: '', venue: '', image_url: '', category: '' }
+const empty = { title: '', description: '', date: '', venue: '', image_url: '', category: '', registration_fee: 0 }
 const categories = ['Main Event', 'Deadline', 'Orientation', 'Workshop', 'Competition', 'Other']
 
 export default function AdminEvents() {
@@ -24,17 +24,18 @@ export default function AdminEvents() {
   useEffect(() => { load() }, [])
 
   const openAdd = () => { setForm(empty); setEditing(null); setModal(true) }
-  const openEdit = (ev) => { setForm({ title: ev.title, description: ev.description || '', date: ev.date?.slice(0, 16) || '', venue: ev.venue || '', image_url: ev.image_url || '', category: ev.category || '' }); setEditing(ev.id); setModal(true) }
+  const openEdit = (ev) => { setForm({ title: ev.title, description: ev.description || '', date: ev.date?.slice(0, 16) || '', venue: ev.venue || '', image_url: ev.image_url || '', category: ev.category || '', registration_fee: ev.registration_fee || 0 }); setEditing(ev.id); setModal(true) }
 
   const handleSave = async (e) => {
     e.preventDefault()
     setSaving(true)
     try {
+      const payload = { ...form, registration_fee: parseInt(form.registration_fee) || 0 }
       if (editing) {
-        await supabase.from('events').update(form).eq('id', editing)
+        await supabase.from('events').update(payload).eq('id', editing)
         setToast({ message: 'Event updated successfully!', type: 'success' })
       } else {
-        await supabase.from('events').insert([form])
+        await supabase.from('events').insert([payload])
         setToast({ message: 'Event created successfully!', type: 'success' })
       }
       setModal(false)
@@ -60,7 +61,7 @@ export default function AdminEvents() {
       {toast && <Toast {...toast} onClose={() => setToast(null)} />}
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28, flexWrap: 'wrap', gap: 16 }}>
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Manage upcoming and past events for VSpark 2025.</p>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Manage upcoming and past events for VSpark.</p>
         <button onClick={openAdd} className="btn-primary">
           <Plus size={16} /> Add Event
         </button>
@@ -81,7 +82,7 @@ export default function AdminEvents() {
           <div style={{ overflowX: 'auto' }}>
             <table>
               <thead>
-                <tr><th>Title</th><th>Category</th><th>Date</th><th>Venue</th><th>Actions</th></tr>
+                <tr><th>Title</th><th>Category</th><th>Fee (PKR)</th><th>Date</th><th>Venue</th><th>Actions</th></tr>
               </thead>
               <tbody>
                 {events.map(ev => (
@@ -92,6 +93,7 @@ export default function AdminEvents() {
                         {ev.category || 'Event'}
                       </span>
                     </td>
+                    <td style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>{ev.registration_fee > 0 ? `PKR ${ev.registration_fee}` : 'Free'}</td>
                     <td style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>{ev.date ? new Date(ev.date).toLocaleDateString() : '—'}</td>
                     <td style={{ color: 'var(--text-muted)', fontSize: '0.875rem', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.venue || '—'}</td>
                     <td>
@@ -136,6 +138,7 @@ export default function AdminEvents() {
               <div className="form-group"><label>Date & Time</label><input type="datetime-local" value={form.date} onChange={h('date')} /></div>
               <div className="form-group"><label>Venue</label><input value={form.venue} onChange={h('venue')} placeholder="COMSATS Vehari Campus, Auditorium" /></div>
               <div className="form-group"><label>Image URL</label><input value={form.image_url} onChange={h('image_url')} placeholder="https://..." /></div>
+              <div className="form-group"><label>Registration Fee (PKR)</label><input type="number" min="0" value={form.registration_fee} onChange={h('registration_fee')} placeholder="0" /></div>
               <div className="form-group"><label>Description</label><textarea rows={4} value={form.description} onChange={h('description')} placeholder="Event description..." /></div>
               <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
                 <button type="button" onClick={() => setModal(false)} className="btn-outline">Cancel</button>

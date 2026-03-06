@@ -89,11 +89,11 @@ const competitions = [
     id: 5,
     icon: <Brain size={32} />,
     title: 'Prompt Engineering',
-    subtitle: 'NEW for 2025 ✦',
+    subtitle: 'NEW ✦',
     color: '#10B981',
     category: 'AI',
     isNew: true,
-    description: 'The newest category for VSpark 2025! Master the art of crafting AI prompts. Participants will compete in designing optimal prompts for given tasks, evaluating AI outputs, and demonstrating understanding of large language models.',
+    description: 'The newest competition category! Master the art of crafting AI prompts. Participants will compete in designing optimal prompts for given tasks, evaluating AI outputs, and demonstrating understanding of large language models.',
     rules: [
       'Individual participation',
       'Tasks involve GPT/Claude prompting',
@@ -221,7 +221,7 @@ export default function Competitions() {
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
                         {comp.isNew && (
                           <span style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', color: '#10B981', padding: '3px 10px', borderRadius: 100, fontSize: '0.7rem', fontFamily: 'var(--font-heading)', fontWeight: 700, letterSpacing: '1px' }}>
-                            NEW 2025
+                            NEW
                           </span>
                         )}
                         <span style={{ background: `${comp.color}10`, color: comp.color, padding: '4px 12px', borderRadius: 100, fontSize: '0.75rem', fontFamily: 'var(--font-heading)', fontWeight: 600 }}>
