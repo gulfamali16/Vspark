@@ -30,44 +30,34 @@ export default function AdminRegistrations() {
 
   const updateStatus = async (id, status) => {
     setProcessing(true);
-    const req = regs.find(r=>r.id===id);
-    
-    if(status==='approved') {
-      // Generate temp password and create Supabase auth user
-      const tempPass = 'VSpark@' + Math.random().toString(36).slice(-6).toUpperCase();
+  
+    if (status === 'approved') {
       try {
-        // Create user in Supabase Auth
-        const { error: authErr } = await supabase.auth.admin.createUser({
-          email: req.email,
-          password: tempPass,
-          email_confirm: true,
+        const { data, error } = await supabase.functions.invoke('approve-registration', {
+          body: { reg_id: id }
         });
-        if(authErr && !authErr.message.includes('already registered')) throw authErr;
-        
-        // Update registration status
-        const { error } = await supabase.from('registration_requests').update({
-          status:'approved', approved_at: new Date().toISOString(), temp_password: tempPass
-        }).eq('id',id);
-        if(error) throw error;
-
-        // Send credentials email via Supabase edge function or store for manual sending
-        await supabase.from('credential_notifications').insert([{
-          reg_id: id, email: req.email, student_name: req.student_name,
-          temp_password: tempPass, sent_at: null
-        }]);
-
-        toast.success(`Approved! Credentials generated for ${req.email}`);
+        if (error) throw error;
+        toast.success(`✅ Approved! Email sent to ${data.email}`);
         setSelected(null);
-      } catch(err) {
+        load();
+      } catch (err) {
         toast.error('Error: ' + err.message);
       }
     } else {
-      const { error } = await supabase.from('registration_requests').update({status}).eq('id',id);
-      if(error){ toast.error('Update failed'); }
-      else { toast.success(`Request ${status}`); setSelected(null); }
+      const { error } = await supabase
+        .from('registration_requests')
+        .update({ status: 'rejected' })
+        .eq('id', id);
+      if (error) {
+        toast.error('Update failed');
+      } else {
+        toast.success('Request rejected');
+        setSelected(null);
+        load();
+      }
     }
+  
     setProcessing(false);
-    load();
   };
 
   const exportExcel = () => {
