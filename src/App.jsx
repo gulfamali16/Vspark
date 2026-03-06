@@ -7,6 +7,7 @@ import Home from './pages/Home'
 import Competitions from './pages/Competitions'
 import Events from './pages/Events'
 import Register from './pages/Register'
+import Login from './pages/Login'
 import Blogs from './pages/Blogs'
 import BlogDetail from './pages/BlogDetail'
 import Highlights from './pages/Highlights'
@@ -19,6 +20,8 @@ import AdminEvents from './admin/AdminEvents'
 import AdminRegistrations from './admin/AdminRegistrations'
 import AdminBlogs from './admin/AdminBlogs'
 import AdminHighlights from './admin/AdminHighlights'
+import AdminSettings from './admin/AdminSettings'
+import AdminCompetitions from './admin/AdminCompetitions'
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -40,6 +43,7 @@ export default function App() {
           <Route path="/competitions" element={<Competitions />} />
           <Route path="/events" element={<Events />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/blogs" element={<Blogs />} />
           <Route path="/blogs/:id" element={<BlogDetail />} />
           <Route path="/highlights" element={<Highlights />} />
@@ -49,9 +53,11 @@ export default function App() {
           <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
             <Route index element={<AdminDashboard />} />
             <Route path="events" element={<AdminEvents />} />
+            <Route path="competitions" element={<AdminCompetitions />} />
             <Route path="registrations" element={<AdminRegistrations />} />
             <Route path="blogs" element={<AdminBlogs />} />
             <Route path="highlights" element={<AdminHighlights />} />
+            <Route path="settings" element={<AdminSettings />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" />} />

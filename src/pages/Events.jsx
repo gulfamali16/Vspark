@@ -8,7 +8,7 @@ import { supabase } from '../lib/supabase'
 const fallbackEvents = [
   {
     id: 'f1',
-    title: 'VSpark 2025 — Main Event',
+    title: 'VSpark — Main Event',
     description: 'The flagship national-level coding competition and innovation showcase. Features Speed Programming, Web Dev, UI/UX, E-Gaming, Prompt Engineering, Quiz, and Poster Designing competitions.',
     date: '2025-12-10T09:00:00',
     venue: 'COMSATS University Islamabad, Vehari Campus — Main Auditorium',
@@ -18,7 +18,7 @@ const fallbackEvents = [
   {
     id: 'f2',
     title: 'Registration Deadline',
-    description: 'Last day to register for VSpark 2025. Submit your registration forms, team details, and event preferences before the deadline.',
+    description: 'Last day to register for VSpark. Submit your registration forms, team details, and event preferences before the deadline.',
     date: '2025-12-05T23:59:00',
     venue: 'Online / CS Department Office',
     category: 'Deadline',
@@ -81,7 +81,7 @@ export default function Events() {
               Upcoming <span className="gradient-text">Events</span>
             </h1>
             <p className="section-subtitle" style={{ margin: '0 auto 48px' }}>
-              Stay up to date with all VSpark 2025 activities, deadlines, and competitions.
+              Stay up to date with all VSpark activities, deadlines, and competitions.
             </p>
           </div>
         </section>

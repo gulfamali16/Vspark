@@ -84,7 +84,7 @@ export default function Footer() {
 
         <div style={{ borderTop: '1px solid var(--border)', paddingTop: 32, display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>
-            © 2025 VSpark — COMSATS University Islamabad, Vehari Campus. All rights reserved.
+            © {new Date().getFullYear()} VSpark — COMSATS University Islamabad, Vehari Campus. All rights reserved.
           </p>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-muted)', fontSize: '0.875rem' }}>
             <Zap size={14} style={{ color: 'var(--primary)' }} />

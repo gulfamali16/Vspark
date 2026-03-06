@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { ArrowRight, Code2, Gamepad2, Globe, Brain, Layers, Award, Users, Calendar, Trophy, ChevronDown, Zap, Star, TrendingUp } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
+import { supabase } from '../lib/supabase'
 
 const CS_LOGO = 'https://github.com/user-attachments/assets/374e5219-aa2e-4024-ba7c-0930e4932a54'
 const VSPARK_LOGO = 'https://github.com/user-attachments/assets/898fc673-4cc8-440d-957e-21d6942085e5'
@@ -39,17 +40,28 @@ const competitions = [
   { icon: <Gamepad2 size={28} />, title: 'E-Gaming', desc: 'Compete in FIFA and Tekken tournaments. Prove your reflexes and game strategy.', color: '#FF6B35', category: 'gaming' },
   { icon: <Globe size={28} />, title: 'Web Development', desc: 'Build stunning, functional websites. Showcase your frontend and backend expertise.', color: '#7C3AED', category: 'dev' },
   { icon: <Layers size={28} />, title: 'UI/UX Design', desc: 'Design intuitive user experiences. Create interfaces that delight and engage users.', color: '#EC4899', category: 'design' },
-  { icon: <Brain size={28} />, title: 'Prompt Engineering', desc: 'New for 2025! Master the art of communicating with AI. Craft prompts that deliver.', color: '#10B981', category: 'ai', isNew: true },
+  { icon: <Brain size={28} />, title: 'Prompt Engineering', desc: 'New! Master the art of communicating with AI. Craft prompts that deliver.', color: '#10B981', category: 'ai', isNew: true },
   { icon: <Award size={28} />, title: 'Quiz Competition', desc: 'Test your CS and tech knowledge. Challenge peers in comprehensive tech trivia.', color: '#F59E0B', category: 'quiz' },
 ]
 
 export default function Home() {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
+  const [siteSettings, setSiteSettings] = useState({})
 
   useEffect(() => {
     const handler = (e) => setMousePos({ x: e.clientX, y: e.clientY })
     window.addEventListener('mousemove', handler)
     return () => window.removeEventListener('mousemove', handler)
+  }, [])
+
+  useEffect(() => {
+    supabase.from('site_settings').select('key, value').then(({ data }) => {
+      if (data) {
+        const settings = {}
+        data.forEach(row => { settings[row.key] = row.value })
+        setSiteSettings(settings)
+      }
+    })
   }, [])
 
   return (
@@ -85,7 +97,7 @@ export default function Home() {
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(0,212,255,0.08)', border: '1px solid rgba(0,212,255,0.25)', borderRadius: 100, padding: '8px 20px', marginBottom: 40, animation: 'fadeInUp 0.6s ease' }}>
             <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#00D4FF', animation: 'pulse-glow 2s ease-in-out infinite' }} />
             <span style={{ fontFamily: 'var(--font-heading)', fontSize: '0.8rem', fontWeight: 600, color: 'var(--primary)', letterSpacing: '2px', textTransform: 'uppercase' }}>
-              December 10, 2025 • Vehari Campus
+              {siteSettings.event_date ? `${siteSettings.event_date} • Vehari Campus` : 'Date To Be Announced • Vehari Campus'}
             </span>
           </div>
 
@@ -121,7 +133,7 @@ export default function Home() {
               color: 'var(--text-muted)',
               fontWeight: 400,
               textTransform: 'uppercase',
-            }}>2025</span>
+            }}>The Event</span>
             <div style={{ height: 1, width: 60, background: 'linear-gradient(90deg, var(--primary), transparent)' }} />
           </div>
 
@@ -188,7 +200,7 @@ export default function Home() {
                 Where Innovation <span className="gradient-text">Meets Competition</span>
               </h2>
               <p style={{ color: 'var(--text-muted)', lineHeight: 1.8, marginBottom: 24 }}>
-                VSpark 2025 is the premier annual technical competition hosted by the Department of Computer Science at COMSATS University Islamabad, Vehari Campus. Designed for students in CS, SE, IT, and AI programs across Pakistan.
+                VSpark is the premier annual technical competition hosted by the Department of Computer Science at COMSATS University Islamabad, Vehari Campus. Designed for students in CS, SE, IT, and AI programs across Pakistan.
               </p>
               <p style={{ color: 'var(--text-muted)', lineHeight: 1.8, marginBottom: 32 }}>
                 From cutting-edge coding challenges to creative design battles — VSpark is where future tech leaders prove their mettle. Top performers unlock exclusive internship opportunities with industry partners.
@@ -223,10 +235,10 @@ export default function Home() {
                   </div>
                 </div>
                 {[
-                  { icon: <Calendar size={18} />, label: 'Event Date', value: 'December 10, 2025' },
+                  { icon: <Calendar size={18} />, label: 'Event Date', value: siteSettings.event_date || 'Date Not Announced' },
                   { icon: <Trophy size={18} />, label: 'Competition Type', value: 'National Level' },
                   { icon: <Users size={18} />, label: 'Open For', value: 'CS, SE, IT, AI Students' },
-                  { icon: <Star size={18} />, label: 'Special Feature', value: 'Internship Program 2025' },
+                  { icon: <Star size={18} />, label: 'Special Feature', value: 'Internship Program' },
                   { icon: <TrendingUp size={18} />, label: 'Achievement', value: '1st in E-Gaming (Byte & Battle)' },
                 ].map((item, i) => (
                   <div key={i} style={{ display: 'flex', gap: 16, alignItems: 'center', padding: '12px 0', borderBottom: i < 4 ? '1px solid var(--border)' : 'none' }}>
@@ -262,7 +274,7 @@ export default function Home() {
               <div key={i} className="card" style={{ padding: 32, cursor: 'pointer', animationDelay: `${i * 0.1}s`, position: 'relative', overflow: 'hidden' }}>
                 {comp.isNew && (
                   <div style={{ position: 'absolute', top: 16, right: 16, background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', color: '#10B981', padding: '3px 10px', borderRadius: 100, fontSize: '0.7rem', fontFamily: 'var(--font-heading)', fontWeight: 700, letterSpacing: '1px' }}>
-                    NEW 2025
+                    NEW
                   </div>
                 )}
                 <div style={{ width: 56, height: 56, borderRadius: 14, background: `${comp.color}15`, border: `1px solid ${comp.color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: comp.color, marginBottom: 20 }}>
@@ -304,13 +316,13 @@ export default function Home() {
             <div style={{ position: 'absolute', top: -80, right: -80, width: 320, height: 320, borderRadius: '50%', background: 'radial-gradient(circle, rgba(124,58,237,0.1), transparent)', pointerEvents: 'none' }} />
             <div>
               <div style={{ fontFamily: 'var(--font-display)', fontSize: '0.7rem', letterSpacing: '4px', color: '#7C3AED', marginBottom: 16, textTransform: 'uppercase', fontWeight: 700 }}>
-                ✦ Exclusive Feature 2025
+                ✦ Exclusive Feature
               </div>
               <h2 className="section-title">
                 Internship <span className="gradient-text">Opportunities</span>
               </h2>
               <p style={{ color: 'var(--text-muted)', lineHeight: 1.8, marginBottom: 32 }}>
-                VSpark 2025 features a unique integrated internship program exclusively for COMSATS students. Top performers across competitions unlock real career opportunities with industry partners.
+                VSpark features a unique integrated internship program exclusively for COMSATS students. Top performers across competitions unlock real career opportunities with industry partners.
               </p>
               <Link to="/register" className="btn-primary">
                 <Zap size={16} />
@@ -347,7 +359,7 @@ export default function Home() {
             Ready to <span className="gradient-text">Spark</span> Your Future?
           </h2>
           <p style={{ color: 'var(--text-muted)', maxWidth: 500, margin: '0 auto 40px', fontSize: '1.1rem' }}>
-            Join hundreds of students competing for glory, prizes, and career opportunities at VSpark 2025.
+            Join hundreds of students competing for glory, prizes, and career opportunities at VSpark.
           </p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, justifyContent: 'center' }}>
             <Link to="/register" className="btn-primary" style={{ fontSize: '1rem', padding: '16px 44px' }}>

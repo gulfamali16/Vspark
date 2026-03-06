@@ -64,6 +64,9 @@ export default function Navbar() {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <Link to="/login" className="btn-outline" style={{ padding: '10px 20px', fontSize: '0.85rem' }}>
+            Login
+          </Link>
           <Link to="/register" className="btn-primary" style={{ padding: '10px 24px', fontSize: '0.85rem' }}>
             <Zap size={15} />
             Register Now

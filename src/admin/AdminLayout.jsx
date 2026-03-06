@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, Calendar, Users, BookOpen, Image, LogOut, Menu, X, Zap, ChevronRight } from 'lucide-react'
+import { LayoutDashboard, Calendar, Users, BookOpen, Image, LogOut, Menu, X, Zap, ChevronRight, Settings, Trophy } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 
 const VSPARK_LOGO = 'https://github.com/user-attachments/assets/898fc673-4cc8-440d-957e-21d6942085e5'
@@ -8,9 +8,11 @@ const VSPARK_LOGO = 'https://github.com/user-attachments/assets/898fc673-4cc8-44
 const navItems = [
   { to: '/admin', icon: <LayoutDashboard size={18} />, label: 'Dashboard', exact: true },
   { to: '/admin/events', icon: <Calendar size={18} />, label: 'Events' },
+  { to: '/admin/competitions', icon: <Trophy size={18} />, label: 'Competitions' },
   { to: '/admin/registrations', icon: <Users size={18} />, label: 'Registrations' },
   { to: '/admin/blogs', icon: <BookOpen size={18} />, label: 'Blogs' },
   { to: '/admin/highlights', icon: <Image size={18} />, label: 'Highlights' },
+  { to: '/admin/settings', icon: <Settings size={18} />, label: 'Settings' },
 ]
 
 export default function AdminLayout() {
@@ -130,7 +132,7 @@ export default function AdminLayout() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 40 }}>
           <div>
             <div style={{ fontFamily: 'var(--font-display)', fontSize: '0.65rem', letterSpacing: '3px', color: 'var(--primary)', textTransform: 'uppercase', marginBottom: 4 }}>
-              VSpark 2025
+            VSpark Admin
             </div>
             <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.5rem', fontWeight: 800 }}>
               {navItems.find(n => isActive(n))?.label || 'Dashboard'}
