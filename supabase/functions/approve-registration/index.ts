@@ -20,8 +20,11 @@ serve(async (req) => {
     return new Response(JSON.stringify({ error: 'Registration not found' }), { status: 404 })
   }
 
-  // Generate a random password
-  const password = Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 6).toUpperCase() + '!'
+  // Generate a cryptographically secure random password
+  const randomBytes = new Uint8Array(12)
+  crypto.getRandomValues(randomBytes)
+  const password = Array.from(randomBytes).map(b => b.toString(36)).join('').slice(0, 10).toUpperCase() +
+    Array.from(new Uint8Array(4)).map((_, i) => { crypto.getRandomValues(new Uint8Array(1)); return '0123456789'[randomBytes[i] % 10] }).join('') + '!'
 
   // Create auth user
   const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
@@ -39,13 +42,11 @@ serve(async (req) => {
   }
 
   // TODO: Send email with credentials via Resend or Supabase email
-  // For now, the password is returned (in production, email it to reg.email)
-  console.log(`Credentials for ${reg.email}: password=${password}`)
+  // Credentials should be sent via secure email delivery, not returned in API responses
+  console.log(`Auth user created for ${reg.email} (user_id: ${authUser.user?.id})`)
 
   return new Response(JSON.stringify({
     success: true,
-    message: `Credentials created for ${reg.email}`,
-    // Remove password from response in production:
-    _debug_password: password
+    message: `Credentials created for ${reg.email}. Send password via email to the student.`,
   }), { status: 200 })
 })

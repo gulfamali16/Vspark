@@ -35,9 +35,18 @@ export default function AdminRegistrations() {
 
   const handleApprove = async (id, email) => {
     try {
-      await supabase.from('registrations').update({ status: 'approved' }).eq('id', id)
+      // First update status to approved
+      const { error: updateErr } = await supabase.from('registrations').update({ status: 'approved' }).eq('id', id)
+      if (updateErr) throw updateErr
+
       // Call edge function to generate credentials and send email
-      await supabase.functions.invoke('approve-registration', { body: { registration_id: id } })
+      const { error: fnErr } = await supabase.functions.invoke('approve-registration', { body: { registration_id: id } })
+      if (fnErr) {
+        // Revert status if edge function fails
+        await supabase.from('registrations').update({ status: 'pending' }).eq('id', id)
+        throw new Error(`Credential generation failed: ${fnErr.message}`)
+      }
+
       setToast({ message: `Approved! Credentials sent to ${email}.`, type: 'success' })
       load()
     } catch (err) {
