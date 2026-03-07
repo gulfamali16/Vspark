@@ -6,10 +6,9 @@ import toast from 'react-hot-toast';
 import * as XLSX from 'xlsx';
 
 // ============================================================
-// PASTE YOUR EMAILJS IDS HERE
-const EMAILJS_SERVICE_ID  = 'service_gzvzpnr';   // e.g. service_abc123
-const EMAILJS_TEMPLATE_ID = 'template_5ucrbhb';  // e.g. template_xyz456
-const EMAILJS_PUBLIC_KEY  = 'HpOhKt9TbldjRD-wn';   // e.g. aBcDeFgHiJkL
+const EMAILJS_SERVICE_ID  = 'service_gzvzpnr';
+const EMAILJS_TEMPLATE_ID = 'template_5ucrbhb';
+const EMAILJS_PUBLIC_KEY  = 'HpOhKt9TbldjRD-wn';
 const SITE_URL            = 'https://vspark-omega.vercel.app';
 // ============================================================
 
@@ -46,7 +45,6 @@ export default function AdminRegistrations() {
   const handleSearch = e => { setSearch(e.target.value); doFilter(e.target.value, statusFilter); };
   const handleStatus = e => { setStatusFilter(e.target.value); doFilter(search, e.target.value); };
 
-  // Generate a random password
   const generatePassword = () => {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     let pass = 'VSpark@';
@@ -64,28 +62,65 @@ export default function AdminRegistrations() {
         const req = regs.find(r => r.id === id);
         const tempPass = generatePassword();
 
-        // Step 1: Update database status
+        // ── STEP 1: Auto-create user in Supabase Auth ──────────────
+        let userCreated = false;
+        try {
+          const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+          const serviceKey  = process.env.REACT_APP_SUPABASE_SERVICE_KEY;
+
+          const authRes = await fetch(`${supabaseUrl}/auth/v1/admin/users`, {
+            method: 'POST',
+            headers: {
+              'Content-Type':  'application/json',
+              'apikey':        serviceKey,
+              'Authorization': `Bearer ${serviceKey}`,
+            },
+            body: JSON.stringify({
+              email:         req.email,
+              password:      tempPass,
+              email_confirm: true,
+            }),
+          });
+
+          const authData = await authRes.json();
+
+          if (authRes.ok) {
+            userCreated = true;
+          } else if (
+            authData?.msg?.includes('already been registered') ||
+            authData?.code === 'email_exists'
+          ) {
+            // User already exists — that is fine
+            userCreated = true;
+          } else {
+            console.error('Auth creation failed:', authData);
+          }
+        } catch (authErr) {
+          console.error('Auth fetch error:', authErr);
+        }
+
+        // ── STEP 2: Save to database ────────────────────────────────
         const { error: dbErr } = await supabase
           .from('registration_requests')
           .update({
-            status: 'approved',
-            approved_at: new Date().toISOString(),
+            status:        'approved',
+            approved_at:   new Date().toISOString(),
             temp_password: tempPass,
           })
           .eq('id', id);
 
         if (dbErr) throw new Error('Database error: ' + dbErr.message);
 
-        // Step 2: Send email via EmailJS
+        // ── STEP 3: Send email via EmailJS ──────────────────────────
         let emailSent = false;
         try {
           const emailRes = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              service_id: EMAILJS_SERVICE_ID,
+              service_id:  EMAILJS_SERVICE_ID,
               template_id: EMAILJS_TEMPLATE_ID,
-              user_id: EMAILJS_PUBLIC_KEY,
+              user_id:     EMAILJS_PUBLIC_KEY,
               template_params: {
                 to_email:      req.email,
                 student_name:  req.student_name,
@@ -101,25 +136,39 @@ export default function AdminRegistrations() {
           console.error('EmailJS error:', emailErr);
         }
 
-        // Step 3: Show credentials popup so you can create user in Supabase manually
-        const message =
-          `✅ APPROVED!\n\n` +
-          `Now go to:\nSupabase → Authentication → Users → Add User\n\n` +
-          `Email:    ${req.email}\n` +
-          `Password: ${tempPass}\n\n` +
-          `✅ Check "Auto Confirm User"\n` +
-          `Then click Create.\n\n` +
-          (emailSent
-            ? `📧 Email was sent to student automatically!`
-            : `⚠️ Email failed — manually send these credentials to the student.`);
-
-        alert(message);
-
-        toast.success(
-          emailSent
-            ? `✅ Approved! Email sent to ${req.email}`
-            : `✅ Approved! Note the password — email failed.`
-        );
+        // ── STEP 4: Show result ─────────────────────────────────────
+        if (userCreated && emailSent) {
+          toast.success(`✅ Done! User created & email sent to ${req.email}`);
+        } else if (userCreated && !emailSent) {
+          toast.success(`✅ User created! But email failed.`);
+          alert(
+            `⚠️ Email failed to send!\n\n` +
+            `Manually send these to the student:\n\n` +
+            `Email:    ${req.email}\n` +
+            `Password: ${tempPass}\n` +
+            `Login:    ${SITE_URL}/login`
+          );
+        } else if (!userCreated && emailSent) {
+          toast.success(`📧 Email sent! But Supabase user was NOT created.`);
+          alert(
+            `⚠️ Supabase user was NOT created automatically.\n\n` +
+            `Go to: Supabase → Authentication → Users → Add User\n\n` +
+            `Email:    ${req.email}\n` +
+            `Password: ${tempPass}\n\n` +
+            `✅ Check "Auto Confirm User" then click Create.`
+          );
+        } else {
+          toast.error(`Both failed. See popup.`);
+          alert(
+            `❌ Something went wrong.\n\n` +
+            `Please do these manually:\n` +
+            `1. Create user in Supabase Auth\n` +
+            `2. Send email to student\n\n` +
+            `Email:    ${req.email}\n` +
+            `Password: ${tempPass}\n` +
+            `Login:    ${SITE_URL}/login`
+          );
+        }
 
         setSelected(null);
         load();
@@ -129,7 +178,7 @@ export default function AdminRegistrations() {
       }
 
     } else {
-      // Reject
+      // ── REJECT ───────────────────────────────────────────────────
       const { error } = await supabase
         .from('registration_requests')
         .update({ status: 'rejected' })
@@ -150,16 +199,16 @@ export default function AdminRegistrations() {
   const exportExcel = () => {
     const ws = XLSX.utils.json_to_sheet(
       filtered.map(r => ({
-        Name: r.student_name,
-        Email: r.email,
-        'Reg #': r.reg_number,
-        Institute: r.institute,
-        Department: r.department,
+        Name:        r.student_name,
+        Email:       r.email,
+        'Reg #':     r.reg_number,
+        Institute:   r.institute,
+        Department:  r.department,
         Competition: r.competitions?.title || r.competition_id,
-        Fee: r.fee_amount,
-        TxnID: r.transaction_id,
-        Status: r.status,
-        Password: r.temp_password || '',
+        Fee:         r.fee_amount,
+        TxnID:       r.transaction_id,
+        Status:      r.status,
+        Password:    r.temp_password || '',
       }))
     );
     const wb = XLSX.utils.book_new();
@@ -257,16 +306,16 @@ export default function AdminRegistrations() {
             </div>
 
             {[
-              ['Student Name', selected.student_name],
-              ['Email', selected.email],
-              ['Phone', selected.phone || '—'],
-              ['Reg Number', selected.reg_number],
-              ['Institute', selected.institute],
-              ['Department', selected.department],
-              ['Competition', selected.competitions?.title || selected.competition_id],
-              ['Registration Fee', `PKR ${selected.fee_amount}`],
+              ['Student Name',    selected.student_name],
+              ['Email',          selected.email],
+              ['Phone',          selected.phone || '—'],
+              ['Reg Number',     selected.reg_number],
+              ['Institute',      selected.institute],
+              ['Department',     selected.department],
+              ['Competition',    selected.competitions?.title || selected.competition_id],
+              ['Reg Fee',        `PKR ${selected.fee_amount}`],
               ['Transaction ID', selected.transaction_id],
-              ['Status', selected.status?.toUpperCase()],
+              ['Status',         selected.status?.toUpperCase()],
             ].map(([k, v]) => (
               <div key={k} style={{ display: 'flex', gap: '1rem', padding: '8px 0', borderBottom: '1px solid rgba(0,212,255,0.06)' }}>
                 <span style={{ color: '#8892b0', fontSize: '0.85rem', minWidth: 140 }}>{k}</span>
@@ -284,7 +333,7 @@ export default function AdminRegistrations() {
               </div>
             )}
 
-            {/* Approve / Reject buttons */}
+            {/* Approve / Reject */}
             {selected.status === 'pending' && (
               <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
                 <button
@@ -309,14 +358,15 @@ export default function AdminRegistrations() {
               </div>
             )}
 
-            {/* Show credentials if already approved */}
+            {/* Already approved — show credentials */}
             {selected.status === 'approved' && selected.temp_password && (
               <div style={{ marginTop: '1.5rem', padding: '1.25rem', background: 'rgba(0,255,136,0.05)', border: '1px solid rgba(0,255,136,0.25)' }}>
-                <p style={{ color: '#8892b0', fontSize: '0.82rem', marginBottom: 8 }}>Generated Credentials:</p>
-                <p style={{ color: '#8892b0', fontSize: '0.82rem' }}>Email: <strong style={{ color: '#e8eaf6', fontFamily: 'JetBrains Mono' }}>{selected.email}</strong></p>
-                <p style={{ color: '#8892b0', fontSize: '0.82rem', marginTop: 4 }}>Password: <strong style={{ color: '#00ff88', fontFamily: 'JetBrains Mono', fontSize: '1rem' }}>{selected.temp_password}</strong></p>
-                <p style={{ color: '#ffd700', fontSize: '0.78rem', marginTop: 10, fontFamily: 'JetBrains Mono' }}>
-                  ⚠ Make sure this user exists in Supabase → Authentication → Users
+                <p style={{ color: '#00ff88', fontFamily: 'Bebas Neue', letterSpacing: 2, fontSize: '1rem', marginBottom: 12 }}>✅ Approved — Credentials</p>
+                <p style={{ color: '#8892b0', fontSize: '0.85rem', marginBottom: 4 }}>
+                  Email: <strong style={{ color: '#e8eaf6', fontFamily: 'JetBrains Mono' }}>{selected.email}</strong>
+                </p>
+                <p style={{ color: '#8892b0', fontSize: '0.85rem' }}>
+                  Password: <strong style={{ color: '#00ff88', fontFamily: 'JetBrains Mono', fontSize: '1.05rem' }}>{selected.temp_password}</strong>
                 </p>
               </div>
             )}
