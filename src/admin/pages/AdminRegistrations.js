@@ -28,37 +28,82 @@ export default function AdminRegistrations() {
   const handleSearch = e => { setSearch(e.target.value); doFilter(e.target.value,statusFilter); };
   const handleStatus = e => { setStatusFilter(e.target.value); doFilter(search,e.target.value); };
 
-  const updateStatus = async (id, status) => {
-    setProcessing(true);
-  
-    if (status === 'approved') {
-      try {
-        const { data, error } = await supabase.functions.invoke('approve-registration', {
-          body: { reg_id: id }
-        });
-        if (error) throw error;
-        toast.success(`✅ Approved! Email sent to ${data.email}`);
-        setSelected(null);
-        load();
-      } catch (err) {
-        toast.error('Error: ' + err.message);
+const updateStatus = async (id, status) => {
+  setProcessing(true);
+
+  if (status === 'approved') {
+    try {
+      const req = regs.find(r => r.id === id);
+
+      // Generate password
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      let tempPass = 'VSpark@';
+      for (let i = 0; i < 6; i++) {
+        tempPass += chars[Math.floor(Math.random() * chars.length)];
       }
-    } else {
-      const { error } = await supabase
-        .from('registration_requests')
-        .update({ status: 'rejected' })
-        .eq('id', id);
-      if (error) {
-        toast.error('Update failed');
-      } else {
-        toast.success('Request rejected');
-        setSelected(null);
-        load();
+
+      // Step 1: Create user in Supabase Auth
+      const { error: authErr } = await supabase.auth.admin.createUser({
+        email: req.email,
+        password: tempPass,
+        email_confirm: true,
+      });
+
+      if (authErr && !authErr.message.includes('already been registered')) {
+        throw new Error(authErr.message);
       }
+
+      // Step 2: Update status in database
+      await supabase.from('registration_requests').update({
+        status: 'approved',
+        approved_at: new Date().toISOString(),
+        temp_password: tempPass,
+      }).eq('id', id);
+
+      // Step 3: Send email via EmailJS
+      await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          service_id: 'service_gzvzpnr',      // paste your service ID here
+          template_id: 'template_5ucrbhb',    // paste your template ID here
+          user_id: 'HpOhKt9TbldjRD-wn',         // paste your public key here
+          template_params: {
+            student_name: req.student_name,
+            student_email: req.email,
+            to_email: req.email,
+            password: tempPass,
+            competition: req.competitions?.title || 'VSpark',
+            site_url: 'https://vspark-omega.vercel.app',
+          }
+        })
+      });
+
+      toast.success(`✅ Approved! Credentials sent to ${req.email}`);
+      setSelected(null);
+      load();
+
+    } catch (err) {
+      toast.error('Error: ' + err.message);
     }
-  
-    setProcessing(false);
-  };
+
+  } else {
+    const { error } = await supabase
+      .from('registration_requests')
+      .update({ status: 'rejected' })
+      .eq('id', id);
+
+    if (error) {
+      toast.error('Update failed');
+    } else {
+      toast.success('Request rejected');
+      setSelected(null);
+      load();
+    }
+  }
+
+  setProcessing(false);
+};
 
   const exportExcel = () => {
     const ws = XLSX.utils.json_to_sheet(filtered.map(r=>({
