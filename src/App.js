@@ -23,6 +23,8 @@ import AdminHighlights from './admin/pages/AdminHighlights';
 import AdminCompetitions from './admin/pages/AdminCompetitions';
 import AdminSettings from './admin/pages/AdminSettings';
 import AdminRoute from './admin/components/AdminRoute';
+import AdminSchedule from './admin/pages/AdminSchedule';
+import StudentCard from './pages/StudentCard';
 
 export default function App() {
   return (
@@ -49,6 +51,8 @@ export default function App() {
         <Route path="/admin/blogs" element={<AdminRoute><AdminBlogs /></AdminRoute>} />
         <Route path="/admin/highlights" element={<AdminRoute><AdminHighlights /></AdminRoute>} />
         <Route path="/admin/settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />
+        <Route path="/admin/schedule" element={<AdminRoute><AdminSchedule /></AdminRoute>} />
+        <Route path="/card" element={<StudentCard />} /> 
       </Routes>
     </Router>
   );

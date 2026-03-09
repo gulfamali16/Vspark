@@ -1,12 +1,13 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Calendar, Users, FileText, Image, LogOut, ChevronRight, Swords, Settings } from 'lucide-react';
+import { LayoutDashboard, Calendar, CalendarDays, Users, FileText, Image, LogOut, ChevronRight, Swords, Settings } from 'lucide-react';
 
 const items = [
   {to:'/admin',icon:LayoutDashboard,label:'Dashboard'},
   {to:'/admin/registrations',icon:Users,label:'Registrations',badge:'new'},
   {to:'/admin/competitions',icon:Swords,label:'Competitions'},
-  {to:'/admin/events',icon:Calendar,label:'Events'},
+  {to:'/admin/schedule',icon:Calendar,label:'Schedule'},
+  {to:'/admin/events',icon:CalendarDays,label:'Events'},
   {to:'/admin/blogs',icon:FileText,label:'Blogs'},
   {to:'/admin/highlights',icon:Image,label:'Highlights'},
   {to:'/admin/settings',icon:Settings,label:'Settings'},

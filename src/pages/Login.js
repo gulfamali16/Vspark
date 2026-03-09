@@ -21,10 +21,20 @@ export default function Login() {
     setLoading(true);
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email: form.email, password: form.password });
-      if(error) throw error;
-      setUser(data.user);
-      setLoggedIn(true);
-      toast.success('Welcome back!');
+if(error) throw error;
+
+// Check if this is the admin email
+const isAdmin = data.user.email === 'your-admin@email.com'; // put your admin email here
+
+toast.success('Welcome back!');
+
+setTimeout(() => {
+  if (isAdmin) {
+    window.location.href = '/admin';
+  } else {
+    window.location.href = '/card';
+  }
+}, 800);
     } catch(err) {
       toast.error('Invalid email or password. Check your credentials sent by admin.');
     }
