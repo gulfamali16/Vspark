@@ -25,6 +25,8 @@ import AdminSettings from './admin/pages/AdminSettings';
 import AdminRoute from './admin/components/AdminRoute';
 import AdminSchedule from './admin/pages/AdminSchedule';
 import StudentCard from './pages/StudentCard';
+import AdminDepartment from './admin/pages/AdminDepartment';
+import AdminAssistants from './admin/pages/AdminAssistants';
 
 export default function App() {
   return (
@@ -52,6 +54,8 @@ export default function App() {
         <Route path="/admin/highlights" element={<AdminRoute><AdminHighlights /></AdminRoute>} />
         <Route path="/admin/settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />
         <Route path="/admin/schedule" element={<AdminRoute><AdminSchedule /></AdminRoute>} />
+        <Route path="/admin/department" element={<AdminRoute><AdminDepartment /></AdminRoute>} />
+        <Route path="/admin/assistants" element={<AdminRoute><AdminAssistants /></AdminRoute>} /> 
         <Route path="/card" element={<StudentCard />} /> 
       </Routes>
     </Router>
