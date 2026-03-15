@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 
 // ============================================================
 const ADMIN_EMAILS = [
-  'gulfamoffi62@gmail.com', // ← your real admin email
+  'gulfam@gmail.com', // ← your real admin email
 ];
 // ============================================================
 
