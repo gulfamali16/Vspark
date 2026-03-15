@@ -5,7 +5,7 @@ import { supabase } from '../../lib/supabase';
 // ============================================================
 // YOUR MAIN ADMIN EMAIL — change this to your real email
 const ADMIN_EMAILS = [
-  'gulfamoffi62@gmail.com',
+  'gulfam@gmail.com',
 ];
 // ============================================================
 
