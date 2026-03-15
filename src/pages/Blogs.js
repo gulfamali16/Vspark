@@ -1,63 +1,149 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, ArrowRight } from 'lucide-react';
+import { Trophy, BookOpen, ArrowRight, Calendar } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { supabase } from '../lib/supabase';
 
-const fallbackBlogs = [
-  { id:1, title:'Why Prompt Engineering is the Skill of 2025', content:'Artificial intelligence has transformed how developers work...', created_at:'2025-11-01', image_url:'' },
-  { id:2, title:'CUI Vehari Wins 1st Place in E-Gaming at Byte & Battle', content:'In a thrilling display of skill and teamwork, students from COMSATS Vehari...', created_at:'2025-10-15', image_url:'' },
-  { id:3, title:'How to Ace Speed Programming Competitions', content:'Speed programming requires more than just knowing algorithms...', created_at:'2025-10-01', image_url:'' },
-  { id:4, title:'UI/UX Design: Creating Experiences That Matter', content:'Great design is invisible. Users shouldnt think about the interface...', created_at:'2025-09-20', image_url:'' },
-];
-
 export default function Blogs() {
-  const [blogs, setBlogs] = useState(fallbackBlogs);
+  const [blogs, setBlogs] = useState([]);
+  const [achievementIds, setAchievementIds] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState('all'); // all | achievements | posts
+
   useEffect(() => {
-    supabase.from('blogs').select('*').order('created_at',{ascending:false}).then(({data})=>{ if(data&&data.length) setBlogs(data); });
+    Promise.all([
+      supabase.from('blogs').select('*').order('created_at', { ascending: false }),
+      supabase.from('site_settings').select('value').eq('key', 'achievement_blog_ids').single(),
+    ]).then(([blogsRes, settRes]) => {
+      setBlogs(blogsRes.data || []);
+      if (settRes.data?.value) {
+        try { setAchievementIds(JSON.parse(settRes.data.value)); } catch (e) {}
+      }
+      setLoading(false);
+    });
   }, []);
+
+  const achievements = blogs.filter(b => achievementIds.includes(b.id));
+  const regularBlogs = blogs.filter(b => !achievementIds.includes(b.id));
+  const displayBlogs = filter === 'achievements' ? achievements : filter === 'posts' ? regularBlogs : blogs;
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
       <Navbar />
-      <section style={{ padding: '10rem 2rem 5rem', textAlign: 'center', background: 'radial-gradient(ellipse at top, rgba(124,58,237,0.08) 0%, transparent 60%)' }}>
-        <span className="tag" style={{ display:'inline-block', marginBottom:'1rem' }}>Articles & Updates</span>
-        <h1 className="section-title" style={{ display:'block', marginBottom:'1rem' }}>CS Blog</h1>
-        <p style={{ color:'#8892b0', maxWidth:500, margin:'0 auto', lineHeight:1.7 }}>Tech insights, department news, student achievements, and more.</p>
+
+      <section style={{ padding: '10rem 2rem 5rem', textAlign: 'center', background: 'radial-gradient(ellipse at top,rgba(0,212,255,0.07) 0%,transparent 60%)' }}>
+        <span className="tag" style={{ display: 'inline-block', marginBottom: '1rem' }}>News & Updates</span>
+        <h1 className="section-title" style={{ display: 'block', marginBottom: '1rem' }}>Blogs & Achievements</h1>
+        <p style={{ color: '#8892b0', maxWidth: 520, margin: '0 auto', lineHeight: 1.7 }}>
+          Latest news, department achievements, event updates, and stories from VSpark.
+        </p>
       </section>
 
-      <section style={{ padding:'2rem 2rem 6rem' }}>
-        <div style={{ maxWidth:1100, margin:'0 auto', display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(320px,1fr))', gap:'2rem' }}>
-          {blogs.map((blog, i) => (
-            <Link key={blog.id} to={`/blogs/${blog.id}`} style={{ textDecoration:'none' }}>
-              <div className="glass" style={{
-                padding:'2rem', borderRadius:2, height:'100%',
-                transition:'all 0.3s', cursor:'pointer',
-              }}
-              onMouseEnter={e=>{ e.currentTarget.style.transform='translateY(-6px)'; e.currentTarget.style.borderColor='rgba(0,212,255,0.4)'; }}
-              onMouseLeave={e=>{ e.currentTarget.style.transform='translateY(0)'; e.currentTarget.style.borderColor='rgba(0,212,255,0.15)'; }}>
-                {/* Placeholder image */}
-                <div style={{
-                  height:160, marginBottom:'1.5rem',
-                  background:`linear-gradient(135deg, ${['rgba(0,212,255,0.1)','rgba(124,58,237,0.1)','rgba(255,107,0,0.1)','rgba(255,215,0,0.1)'][i%4]} 0%, rgba(0,0,0,0.3) 100%)`,
-                  border:'1px solid rgba(0,212,255,0.1)', display:'flex', alignItems:'center', justifyContent:'center',
-                }}>
-                  {blog.image_url ? <img src={blog.image_url} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
-                    : <span style={{ fontFamily:'Bebas Neue', fontSize:'2rem', color:'rgba(0,212,255,0.2)', letterSpacing:4 }}>VSPARK</span>}
-                </div>
-                <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:12 }}>
-                  <Calendar size={12} style={{ color:'#00d4ff' }} />
-                  <span style={{ color:'#8892b0', fontSize:'0.8rem', fontFamily:'JetBrains Mono' }}>
-                    {new Date(blog.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}
-                  </span>
-                </div>
-                <h3 style={{ fontFamily:'Bebas Neue', fontSize:'1.4rem', letterSpacing:2, color:'#e8eaf6', marginBottom:12, lineHeight:1.2 }}>{blog.title}</h3>
-                <p style={{ color:'#8892b0', fontSize:'0.9rem', lineHeight:1.6, marginBottom:'1rem' }}>{blog.content.substring(0,120)}...</p>
-                <span style={{ color:'#00d4ff', fontSize:'0.85rem', display:'flex', alignItems:'center', gap:6 }}>Read More <ArrowRight size={14} /></span>
+      {/* Achievements highlight strip */}
+      {achievements.length > 0 && (
+        <section style={{ padding: '0 2rem 3rem' }}>
+          <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+            <div style={{ padding: '2rem', background: 'linear-gradient(135deg,rgba(255,215,0,0.06) 0%,rgba(255,215,0,0.02) 100%)', border: '1px solid rgba(255,215,0,0.2)', borderLeft: '4px solid #ffd700' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: '1.25rem' }}>
+                <Trophy size={20} style={{ color: '#ffd700' }} />
+                <h2 style={{ fontFamily: 'Bebas Neue', fontSize: '1.3rem', letterSpacing: 3, color: '#ffd700' }}>Department Achievements</h2>
+                <span style={{ padding: '1px 8px', background: 'rgba(255,215,0,0.1)', color: '#ffd700', fontSize: '0.65rem', fontFamily: 'JetBrains Mono', border: '1px solid rgba(255,215,0,0.3)' }}>{achievements.length}</span>
               </div>
-            </Link>
-          ))}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(260px,1fr))', gap: '0.75rem' }}>
+                {achievements.map(blog => (
+                  <Link key={blog.id} to={`/blogs/${blog.id}`} style={{ textDecoration: 'none' }}>
+                    <div style={{ padding: '0.9rem 1.1rem', background: 'rgba(255,215,0,0.04)', border: '1px solid rgba(255,215,0,0.15)', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: 'all 0.2s', gap: 10 }}
+                      onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,215,0,0.08)'; e.currentTarget.style.borderColor = 'rgba(255,215,0,0.3)'; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,215,0,0.04)'; e.currentTarget.style.borderColor = 'rgba(255,215,0,0.15)'; }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, overflow: 'hidden' }}>
+                        <Trophy size={13} style={{ color: '#ffd700', flexShrink: 0 }} />
+                        <span style={{ color: '#e8eaf6', fontSize: '0.88rem', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{blog.title}</span>
+                      </div>
+                      <ArrowRight size={13} style={{ color: '#ffd700', flexShrink: 0 }} />
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Filter tabs */}
+      <section style={{ padding: '0 2rem 4rem' }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+          <div style={{ display: 'flex', gap: 4, marginBottom: '2rem', borderBottom: '1px solid rgba(0,212,255,0.1)' }}>
+            {[
+              { id: 'all', label: `All (${blogs.length})` },
+              { id: 'achievements', label: `Achievements (${achievements.length})` },
+              { id: 'posts', label: `Blog Posts (${regularBlogs.length})` },
+            ].map(({ id, label }) => (
+              <button key={id} onClick={() => setFilter(id)} style={{
+                padding: '10px 20px', background: 'transparent', border: 'none',
+                borderBottom: filter === id ? '2px solid #00d4ff' : '2px solid transparent',
+                color: filter === id ? '#00d4ff' : '#8892b0',
+                cursor: 'pointer', fontFamily: 'Bebas Neue', letterSpacing: 1.5, fontSize: '0.95rem',
+                transition: 'all 0.2s',
+              }}>{label}</button>
+            ))}
+          </div>
+
+          {loading ? (
+            <p style={{ color: '#8892b0', fontFamily: 'JetBrains Mono', fontSize: '0.85rem' }}>Loading...</p>
+          ) : displayBlogs.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '4rem', color: '#8892b0' }}>
+              <BookOpen size={40} style={{ marginBottom: '1rem' }} />
+              <p style={{ fontFamily: 'JetBrains Mono', fontSize: '0.85rem' }}>No posts yet.</p>
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(320px,1fr))', gap: '1.5rem' }}>
+              {displayBlogs.map(blog => {
+                const isAchievement = achievementIds.includes(blog.id);
+                return (
+                  <Link key={blog.id} to={`/blogs/${blog.id}`} style={{ textDecoration: 'none' }}>
+                    <div className="glass" style={{ height: '100%', overflow: 'hidden', transition: 'all 0.3s', borderColor: isAchievement ? 'rgba(255,215,0,0.2)' : 'rgba(0,212,255,0.15)' }}
+                      onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-6px)'; e.currentTarget.style.boxShadow = `0 20px 60px ${isAchievement ? 'rgba(255,215,0,0.12)' : 'rgba(0,212,255,0.1)'}`; }}
+                      onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}>
+
+                      {blog.image_url && (
+                        <div style={{ height: 180, overflow: 'hidden' }}>
+                          <img src={blog.image_url} alt={blog.title} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s' }}
+                            onMouseEnter={e => e.target.style.transform = 'scale(1.05)'}
+                            onMouseLeave={e => e.target.style.transform = 'scale(1)'}
+                            onError={e => e.target.parentElement.style.display = 'none'} />
+                        </div>
+                      )}
+
+                      <div style={{ padding: '1.5rem' }}>
+                        {isAchievement && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                            <Trophy size={12} style={{ color: '#ffd700' }} />
+                            <span style={{ color: '#ffd700', fontSize: '0.68rem', fontFamily: 'JetBrains Mono', letterSpacing: 2 }}>ACHIEVEMENT</span>
+                          </div>
+                        )}
+                        <h3 style={{ fontFamily: 'Bebas Neue', fontSize: '1.2rem', letterSpacing: 2, color: '#e8eaf6', marginBottom: 8, lineHeight: 1.3 }}>{blog.title}</h3>
+                        {blog.content && (
+                          <p style={{ color: '#8892b0', fontSize: '0.88rem', lineHeight: 1.7, marginBottom: '1rem' }}>
+                            {blog.content.replace(/<[^>]*>/g, '').slice(0, 120)}...
+                          </p>
+                        )}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.75rem', borderTop: '1px solid rgba(0,212,255,0.08)' }}>
+                          <span style={{ color: '#8892b0', fontSize: '0.75rem', fontFamily: 'JetBrains Mono', display: 'flex', alignItems: 'center', gap: 5 }}>
+                            <Calendar size={11} />
+                            {new Date(blog.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </span>
+                          <span style={{ color: isAchievement ? '#ffd700' : '#00d4ff', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: 4 }}>
+                            Read <ArrowRight size={12} />
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
         </div>
       </section>
       <Footer />
