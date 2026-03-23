@@ -30,21 +30,28 @@ export default function Home() {
   useEffect(() => { setTimeout(() => setVis(true), 100); }, []);
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', position: 'relative' }}>
+    // KEY FIX: overflowX hidden on the root wrapper kills the right-side gap
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', overflowX: 'hidden' }}>
       <ParticlesBg />
       <Navbar />
 
       {/* ── HERO ─────────────────────────────────────────── */}
-      <section className="hero-section" style={{
+      <section style={{
         minHeight: '100vh',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         position: 'relative',
         padding: '8rem 1.5rem 4rem',
         textAlign: 'center',
+        // overflowX hidden here too so rings don't leak
+        overflow: 'hidden',
         background: 'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(0,212,255,0.07) 0%, transparent 70%)',
       }}>
-        {/* Rotating rings — hidden on mobile for perf */}
-        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
+        {/* Rotating rings — clipped by parent overflow:hidden */}
+        <div style={{
+          position: 'absolute', top: '50%', left: '50%',
+          transform: 'translate(-50%,-50%)',
+          zIndex: 0, pointerEvents: 'none',
+        }}>
           {[1, 2, 3].map(i => (
             <div key={i} style={{
               position: 'absolute', top: '50%', left: '50%',
@@ -58,18 +65,14 @@ export default function Home() {
         </div>
 
         <div style={{ position: 'relative', zIndex: 1, maxWidth: 900, width: '100%' }}>
-          <div style={{
-            opacity: vis ? 1 : 0, transition: 'opacity 0.8s',
-            marginBottom: '1.25rem',
-          }}>
+          <div style={{ opacity: vis ? 1 : 0, transition: 'opacity 0.8s', marginBottom: '1.25rem' }}>
             <span className="tag">COMSATS University Islamabad • Vehari Campus</span>
           </div>
 
-          <h1 className="hero-title" style={{
+          <h1 style={{
             fontFamily: 'Bebas Neue, cursive',
             fontSize: 'clamp(5rem, 20vw, 12rem)',
-            lineHeight: 0.88,
-            letterSpacing: '0.02em',
+            lineHeight: 0.88, letterSpacing: '0.02em',
             marginBottom: '0.5rem',
             opacity: vis ? 1 : 0,
             transform: vis ? 'translateY(0)' : 'translateY(40px)',
@@ -80,13 +83,9 @@ export default function Home() {
           </h1>
 
           <p style={{
-            color: '#8892b0',
-            maxWidth: 560, margin: '1.25rem auto 2.5rem',
-            lineHeight: 1.8,
-            fontSize: 'clamp(0.9rem, 2.5vw, 1.1rem)',
-            fontWeight: 500,
-            opacity: vis ? 1 : 0,
-            transition: 'all 0.8s ease 0.6s',
+            color: '#8892b0', maxWidth: 560, margin: '1.25rem auto 2.5rem',
+            lineHeight: 1.8, fontSize: 'clamp(0.9rem,2.5vw,1.1rem)', fontWeight: 500,
+            opacity: vis ? 1 : 0, transition: 'all 0.8s ease 0.6s',
             padding: '0 0.5rem',
           }}>
             National-level coding competition and innovation showcase —{' '}
@@ -94,18 +93,13 @@ export default function Home() {
             Speed programming, e-gaming, web dev, AI prompting and more.
           </p>
 
-          <div className="hero-buttons" style={{
-            display: 'flex', gap: 14,
-            justifyContent: 'center', flexWrap: 'wrap',
+          <div style={{
+            display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap',
             opacity: vis ? 1 : 0, transition: 'all 0.8s ease 0.8s',
             padding: '0 1rem',
           }}>
-            <Link to="/register" className="btn-neon" style={{ textDecoration: 'none', fontSize: '1rem', padding: '13px 32px' }}>
-              Register Now
-            </Link>
-            <Link to="/competitions" className="btn-neon btn-orange" style={{ textDecoration: 'none', fontSize: '1rem', padding: '13px 32px' }}>
-              Explore Events
-            </Link>
+            <Link to="/register" className="btn-neon" style={{ textDecoration: 'none', fontSize: '1rem', padding: '13px 32px' }}>Register Now</Link>
+            <Link to="/competitions" className="btn-neon btn-orange" style={{ textDecoration: 'none', fontSize: '1rem', padding: '13px 32px' }}>Explore Events</Link>
           </div>
 
           <div style={{ marginTop: '3.5rem', animation: 'float 3s ease-in-out infinite' }}>
@@ -121,16 +115,16 @@ export default function Home() {
         borderTop: '1px solid rgba(0,212,255,0.08)',
         borderBottom: '1px solid rgba(0,212,255,0.08)',
       }}>
-        <div className="stats-grid" style={{
+        <div style={{
           maxWidth: 860, margin: '0 auto',
           display: 'grid',
-          gridTemplateColumns: 'repeat(2, 1fr)',
+          gridTemplateColumns: 'repeat(2,1fr)',
           gap: '1.5rem 1rem',
         }}>
           {stats.map(({ icon: Icon, value, label }, i) => (
             <div key={i} style={{ textAlign: 'center', padding: '0.5rem' }}>
               <Icon size={24} style={{ color: '#00d4ff', marginBottom: 8 }} />
-              <div style={{ fontFamily: 'Bebas Neue, cursive', fontSize: 'clamp(2rem, 8vw, 3rem)', color: '#fff', lineHeight: 1, letterSpacing: 2 }}>{value}</div>
+              <div style={{ fontFamily: 'Bebas Neue,cursive', fontSize: 'clamp(2rem,8vw,3rem)', color: '#fff', lineHeight: 1, letterSpacing: 2 }}>{value}</div>
               <div style={{ color: '#8892b0', fontWeight: 600, letterSpacing: 2, textTransform: 'uppercase', fontSize: '0.75rem', marginTop: 4 }}>{label}</div>
             </div>
           ))}
@@ -138,7 +132,7 @@ export default function Home() {
       </section>
 
       {/* ── COMPETITIONS PREVIEW ─────────────────────────── */}
-      <section className="section-pad" style={{ padding: '5rem 1.5rem', position: 'relative', zIndex: 1 }}>
+      <section style={{ padding: '5rem 1.5rem', position: 'relative', zIndex: 1 }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
             <span className="tag" style={{ marginBottom: '1rem', display: 'inline-block' }}>What to Expect</span>
@@ -148,27 +142,20 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="comp-grid" style={{
+          <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))',
             gap: '1rem',
           }}>
             {compList.map(({ icon: Icon, title, fee, color, isNew }, i) => (
-              <div key={i} className="glass" style={{
-                padding: '1.5rem',
-                cursor: 'pointer',
-                transition: 'all 0.3s',
-                position: 'relative',
-                overflow: 'hidden',
-              }}
+              <div key={i} className="glass" style={{ padding: '1.5rem', cursor: 'pointer', transition: 'all 0.3s', position: 'relative', overflow: 'hidden' }}
                 onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.borderColor = color; }}
-                onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'rgba(0,212,255,0.15)'; }}
-              >
+                onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'rgba(0,212,255,0.15)'; }}>
                 <div style={{ position: 'absolute', top: -20, right: -20, width: 80, height: 80, borderRadius: '50%', background: `radial-gradient(circle,${color}20 0%,transparent 70%)` }} />
                 <div style={{ width: 40, height: 40, border: `1px solid ${color}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '0.9rem' }}>
                   <Icon size={18} style={{ color }} />
                 </div>
-                <h3 style={{ fontFamily: 'Bebas Neue, cursive', fontSize: '1.2rem', letterSpacing: 2, color: '#e8eaf6', marginBottom: 4 }}>{title}</h3>
+                <h3 style={{ fontFamily: 'Bebas Neue,cursive', fontSize: '1.2rem', letterSpacing: 2, color: '#e8eaf6', marginBottom: 4 }}>{title}</h3>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
                   <span style={{ fontFamily: 'Bebas Neue', fontSize: '1.1rem', color: '#ffd700', letterSpacing: 1 }}>PKR {fee}</span>
                   {isNew && <span style={{ padding: '1px 7px', background: `${color}20`, color, fontSize: '0.62rem', fontFamily: 'JetBrains Mono', border: `1px solid ${color}40` }}>NEW</span>}
@@ -186,7 +173,7 @@ export default function Home() {
       </section>
 
       {/* ── INTERNSHIP ───────────────────────────────────── */}
-      <section className="section-pad" style={{
+      <section style={{
         padding: '5rem 1.5rem',
         background: 'linear-gradient(135deg,rgba(0,212,255,0.04) 0%,rgba(124,58,237,0.04) 100%)',
         borderTop: '1px solid rgba(0,212,255,0.1)',
@@ -199,30 +186,21 @@ export default function Home() {
             Top performers unlock <span style={{ color: '#ffd700', fontWeight: 700 }}>exclusive internship opportunities</span>{' '}
             with industry partners. Your performance determines your career tomorrow.
           </p>
-          <Link to="/register" className="btn-neon" style={{ textDecoration: 'none', borderColor: '#ffd700', color: '#ffd700', fontSize: '0.95rem' }}>
+          <Link to="/register" className="btn-neon" style={{ textDecoration: 'none', borderColor: '#ffd700', color: '#ffd700' }}>
             Register & Compete
           </Link>
         </div>
       </section>
 
       {/* ── CTA ──────────────────────────────────────────── */}
-      <section className="section-pad" style={{ padding: '5rem 1.5rem', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+      <section style={{ padding: '5rem 1.5rem', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at center,rgba(124,58,237,0.1) 0%,transparent 70%)' }} />
         <div style={{ position: 'relative', zIndex: 1 }}>
-          <h2 style={{
-            fontFamily: 'Bebas Neue, cursive',
-            fontSize: 'clamp(1.8rem, 6vw, 3.5rem)',
-            letterSpacing: 3, color: '#e8eaf6', marginBottom: '0.75rem',
-            padding: '0 0.5rem',
-          }}>
+          <h2 style={{ fontFamily: 'Bebas Neue,cursive', fontSize: 'clamp(1.8rem,6vw,3.5rem)', letterSpacing: 3, color: '#e8eaf6', marginBottom: '0.75rem', padding: '0 1rem' }}>
             Ready to <span style={{ color: '#00d4ff' }}>Ignite</span> Your Potential?
           </h2>
-          <p style={{ color: '#8892b0', marginBottom: '2.5rem', fontSize: '0.95rem' }}>
-            Register now and secure your spot at VSpark
-          </p>
-          <Link to="/register" className="btn-neon" style={{ textDecoration: 'none', fontSize: '1rem', padding: '14px 40px' }}>
-            Register Now
-          </Link>
+          <p style={{ color: '#8892b0', marginBottom: '2.5rem', fontSize: '0.95rem' }}>Register now and secure your spot at VSpark</p>
+          <Link to="/register" className="btn-neon" style={{ textDecoration: 'none', fontSize: '1rem', padding: '14px 40px' }}>Register Now</Link>
         </div>
       </section>
 
