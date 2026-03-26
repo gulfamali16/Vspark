@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Instagram, Facebook, Twitter, Mail, MapPin, Phone } from 'lucide-react';
+import { Instagram, Facebook, Mail, MapPin, Phone, Globe } from 'lucide-react';
 
 export default function Footer() {
   return (
@@ -42,8 +42,11 @@ export default function Footer() {
             </p>
 
             <div style={{ display: 'flex', gap: 10 }}>
-              {[Instagram, Facebook, Twitter].map((Icon, i) => (
-                <a key={i} href="#" style={{
+              {[
+                { Icon: Facebook, href: 'https://web.facebook.com/people/Department-of-Computer-Science-CUI-Vehari/61582504795576/?_rdc=1&_rdr#' },
+                { Icon: Instagram, href: 'https://www.instagram.com/comsats_vehari_official/' }
+              ].map(({ Icon, href }, i) => (
+                <a key={i} href={href} target="_blank" rel="noreferrer" style={{
                   width: 34, height: 34,
                   border: '1px solid rgba(0,212,255,0.3)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -83,9 +86,10 @@ export default function Footer() {
           <div>
             <h4 style={{ fontFamily: 'Bebas Neue,cursive', fontSize: '1rem', letterSpacing: 2, color: '#00d4ff', marginBottom: '1rem' }}>Contact</h4>
             {[
-              [MapPin, 'COMSATS University Islamabad, Vehari Campus'],
-              [Mail, 'vspark@cuivehari.edu.pk'],
-              [Phone, '+92-67-XXXXXXX'],
+              [MapPin, 'CUI Vehari Adda Pir Murad Vehari, Punjab, Pakistan'],
+              [Mail, 'hodcs@cuivehari.edu.pk'],
+              [Phone, '(067) 3602803'],
+              [Globe, <a href="http://ww2.comsats.edu.pk/cs_vhr" target="_blank" rel="noreferrer" style={{ color: '#8892b0', textDecoration: 'none' }} onMouseEnter={e => e.target.style.color = '#00d4ff'} onMouseLeave={e => e.target.style.color = '#8892b0'}>ww2.comsats.edu.pk/cs_vhr</a>],
             ].map(([Icon, text], i) => (
               <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginBottom: 14 }}>
                 <Icon size={14} style={{ color: '#00d4ff', marginTop: 2, flexShrink: 0 }} />
