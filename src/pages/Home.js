@@ -201,10 +201,6 @@ export default function Home() {
         </div>
 
         <div style={{ position: 'relative', zIndex: 1, maxWidth: 900, width: '100%' }}>
-          <div style={{ opacity: vis ? 1 : 0, transition: 'opacity 0.8s', marginBottom: '1.25rem' }}>
-            <span className="tag">COMSATS University Islamabad • Vehari Campus</span>
-          </div>
-
           <h1 style={{
             fontFamily: 'Bebas Neue,cursive',
             fontSize: 'clamp(5rem,20vw,12rem)',
@@ -216,6 +212,10 @@ export default function Home() {
             <span style={{ display: 'block', background: 'linear-gradient(135deg,#fff 30%,#00d4ff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>V</span>
             <span style={{ display: 'block', background: 'linear-gradient(135deg,#00d4ff,#7c3aed)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>SPARK</span>
           </h1>
+
+          <div style={{ opacity: vis ? 1 : 0, transition: 'opacity 0.8s', marginBottom: '1.25rem' }}>
+            <span className="tag">COMSATS University Islamabad • Vehari Campus</span>
+          </div>
 
           <p style={{
             color: '#8892b0', maxWidth: 560, margin: '1.25rem auto 2.5rem',

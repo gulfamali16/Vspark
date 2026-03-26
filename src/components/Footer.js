@@ -16,7 +16,7 @@ export default function Footer() {
               <img
                 src="/images/csdep.png"
                 alt="CS Department"
-                style={{ height: 52, width: 'auto', objectFit: 'contain' }}
+                style={{ height: 62, width: 'auto', objectFit: 'contain' }}
                 onError={e => { e.target.style.display = 'none'; }}
               />
               {/* Divider line */}
@@ -25,7 +25,7 @@ export default function Footer() {
               <img
                 src="/images/vspark-footer.png"
                 alt="VSpark"
-                style={{ height: 52, width: 'auto', objectFit: 'contain' }}
+                style={{ height: 62, width: 'auto', objectFit: 'contain' }}
                 onError={e => {
                   e.target.style.display = 'none';
                   e.target.nextSibling.style.display = 'block';
@@ -84,8 +84,8 @@ export default function Footer() {
             <h4 style={{ fontFamily: 'Bebas Neue,cursive', fontSize: '1rem', letterSpacing: 2, color: '#00d4ff', marginBottom: '1rem' }}>Contact</h4>
             {[
               [MapPin, 'COMSATS University Islamabad, Vehari Campus'],
-              [Mail,   'vspark@cuivehari.edu.pk'],
-              [Phone,  '+92-67-XXXXXXX'],
+              [Mail, 'vspark@cuivehari.edu.pk'],
+              [Phone, '+92-67-XXXXXXX'],
             ].map(([Icon, text], i) => (
               <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginBottom: 14 }}>
                 <Icon size={14} style={{ color: '#00d4ff', marginTop: 2, flexShrink: 0 }} />

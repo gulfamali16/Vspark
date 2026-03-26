@@ -3,12 +3,12 @@ import { Link, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 
 const links = [
-  { to: '/',             label: 'Home' },
+  { to: '/', label: 'Home' },
   { to: '/competitions', label: 'Competitions' },
-  { to: '/events',       label: 'Events' },
-  { to: '/highlights',   label: 'Highlights' },
-  { to: '/blogs',        label: 'Blogs' },
-  { to: '/department',   label: 'CS Dept' },
+  { to: '/events', label: 'Events' },
+  { to: '/highlights', label: 'Highlights' },
+  { to: '/blogs', label: 'Blogs' },
+  { to: '/department', label: 'CS Dept' },
 ];
 
 export default function Navbar() {
@@ -49,7 +49,7 @@ export default function Navbar() {
             <img
               src="/images/vspark.png"
               alt="VSpark"
-              style={{ height: 38, width: 'auto', objectFit: 'contain' }}
+              style={{ height: 70, width: 'auto', objectFit: 'contain' }}
               onError={e => {
                 // Fallback to text if image not found
                 e.target.style.display = 'none';
@@ -77,7 +77,7 @@ export default function Navbar() {
                 onMouseLeave={e => { if (loc.pathname !== l.to) e.target.style.color = '#8892b0'; }}
               >{l.label}</Link>
             ))}
-            <Link to="/login"    className="btn-neon"            style={{ marginLeft: 8, fontSize: '0.82rem', padding: '7px 16px', textDecoration: 'none' }}>Login</Link>
+            <Link to="/login" className="btn-neon" style={{ marginLeft: 8, fontSize: '0.82rem', padding: '7px 16px', textDecoration: 'none' }}>Login</Link>
             <Link to="/register" className="btn-neon btn-orange" style={{ marginLeft: 4, fontSize: '0.82rem', padding: '7px 16px', textDecoration: 'none' }}>Register</Link>
           </div>
 
@@ -114,7 +114,7 @@ export default function Navbar() {
               </Link>
             ))}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: '2rem' }}>
-              <Link to="/login"    className="btn-neon"            style={{ textDecoration: 'none', textAlign: 'center', fontSize: '1rem', padding: '14px' }}>Login</Link>
+              <Link to="/login" className="btn-neon" style={{ textDecoration: 'none', textAlign: 'center', fontSize: '1rem', padding: '14px' }}>Login</Link>
               <Link to="/register" className="btn-neon btn-orange" style={{ textDecoration: 'none', textAlign: 'center', fontSize: '1rem', padding: '14px' }}>Register Now</Link>
             </div>
           </div>

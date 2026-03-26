@@ -8,28 +8,28 @@ import {
 import { supabase } from '../../lib/supabase';
 
 const ALL_ITEMS = [
-  { to: '/admin',               icon: LayoutDashboard, label: 'Dashboard',     perm: null },
-  { to: '/admin/registrations', icon: Users,           label: 'Registrations', perm: 'registrations', badge: true },
-  { to: '/admin/competitions',  icon: Swords,          label: 'Competitions',  perm: 'competitions' },
-  { to: '/admin/schedule',      icon: Calendar,        label: 'Schedule',      perm: 'schedule' },
-  { to: '/admin/events',        icon: CalendarDays,    label: 'Events',        perm: 'events' },
-  { to: '/admin/department',    icon: GraduationCap,   label: 'CS Department', perm: 'department' },
-  { to: '/admin/blogs',         icon: FileText,        label: 'Blogs',         perm: 'blogs' },
-  { to: '/admin/highlights',    icon: Image,           label: 'Highlights',    perm: 'highlights' },
-  { to: '/admin/assistants',    icon: UserCog,         label: 'Assistants',    perm: 'assistants' },
-  { to: '/admin/settings',      icon: Settings,        label: 'Settings',      perm: 'settings' },
+  { to: '/admin', icon: LayoutDashboard, label: 'Dashboard', perm: null },
+  { to: '/admin/registrations', icon: Users, label: 'Registrations', perm: 'registrations', badge: true },
+  { to: '/admin/competitions', icon: Swords, label: 'Competitions', perm: 'competitions' },
+  { to: '/admin/schedule', icon: Calendar, label: 'Schedule', perm: 'schedule' },
+  { to: '/admin/events', icon: CalendarDays, label: 'Events', perm: 'events' },
+  { to: '/admin/department', icon: GraduationCap, label: 'CS Department', perm: 'department' },
+  { to: '/admin/blogs', icon: FileText, label: 'Blogs', perm: 'blogs' },
+  { to: '/admin/highlights', icon: Image, label: 'Highlights', perm: 'highlights' },
+  { to: '/admin/assistants', icon: UserCog, label: 'Assistants', perm: 'assistants' },
+  { to: '/admin/settings', icon: Settings, label: 'Settings', perm: 'settings' },
 ];
 
 export default function AdminSidebar() {
   const loc = useLocation();
   const navigate = useNavigate();
-  const [role,  setRole]  = useState('admin');
-  const [name,  setName]  = useState('Admin');
+  const [role, setRole] = useState('admin');
+  const [name, setName] = useState('Admin');
   const [perms, setPerms] = useState(['all']);
 
   useEffect(() => {
-    const storedRole  = sessionStorage.getItem('vspark_role')  || 'admin';
-    const storedName  = sessionStorage.getItem('vspark_name')  || 'Admin';
+    const storedRole = sessionStorage.getItem('vspark_role') || 'admin';
+    const storedName = sessionStorage.getItem('vspark_name') || 'Admin';
     const storedPerms = sessionStorage.getItem('vspark_perms');
     setRole(storedRole);
     setName(storedName);
@@ -73,7 +73,7 @@ export default function AdminSidebar() {
         <img
           src="/images/vspark.png"
           alt="VSpark"
-          style={{ height: 32, width: 'auto', objectFit: 'contain' }}
+          style={{ height: 52, width: 'auto', objectFit: 'contain' }}
           onError={e => {
             e.target.style.display = 'none';
             e.target.nextSibling.style.display = 'block';
