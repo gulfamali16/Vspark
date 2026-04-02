@@ -69,22 +69,24 @@ export default function Highlights() {
       {/* Tabs */}
       <section className="section" style={{ borderBottom: '1px solid var(--border)' }}>
         <div className="container">
-          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', flexWrap: 'wrap' }}>
             <button
               onClick={() => setActiveTab('gallery')}
               style={{
-                padding: '10px 20px',
-                background: activeTab === 'gallery' ? 'rgba(170,136,255,0.15)' : 'rgba(255,255,255,0.05)',
-                border: activeTab === 'gallery' ? '2px solid rgba(170,136,255,0.4)' : '1px solid rgba(170,136,255,0.15)',
+                padding: '12px 24px',
+                background: activeTab === 'gallery' ? 'rgba(170,136,255,0.2)' : 'rgba(255,255,255,0.03)',
+                border: activeTab === 'gallery' ? '2px solid rgba(170,136,255,0.5)' : '1px solid rgba(170,136,255,0.2)',
                 color: activeTab === 'gallery' ? '#aa88ff' : '#8892b0',
                 cursor: 'pointer',
-                borderRadius: 8,
+                borderRadius: 10,
                 fontWeight: 600,
-                fontSize: '0.95rem',
-                transition: 'all 0.3s',
+                fontSize: 'clamp(0.85rem, 2vw, 1rem)',
+                transition: 'all 0.3s ease',
                 display: 'flex',
                 alignItems: 'center',
                 gap: 8,
+                fontFamily: 'var(--font-sans)',
+                letterSpacing: 0.5,
               }}
             >
               <Image size={16} /> Photo Gallery
@@ -92,18 +94,20 @@ export default function Highlights() {
             <button
               onClick={() => setActiveTab('results')}
               style={{
-                padding: '10px 20px',
-                background: activeTab === 'results' ? 'rgba(170,136,255,0.15)' : 'rgba(255,255,255,0.05)',
-                border: activeTab === 'results' ? '2px solid rgba(170,136,255,0.4)' : '1px solid rgba(170,136,255,0.15)',
+                padding: '12px 24px',
+                background: activeTab === 'results' ? 'rgba(170,136,255,0.2)' : 'rgba(255,255,255,0.03)',
+                border: activeTab === 'results' ? '2px solid rgba(170,136,255,0.5)' : '1px solid rgba(170,136,255,0.2)',
                 color: activeTab === 'results' ? '#aa88ff' : '#8892b0',
                 cursor: 'pointer',
-                borderRadius: 8,
+                borderRadius: 10,
                 fontWeight: 600,
-                fontSize: '0.95rem',
-                transition: 'all 0.3s',
+                fontSize: 'clamp(0.85rem, 2vw, 1rem)',
+                transition: 'all 0.3s ease',
                 display: 'flex',
                 alignItems: 'center',
                 gap: 8,
+                fontFamily: 'var(--font-sans)',
+                letterSpacing: 0.5,
               }}
             >
               <Trophy size={16} /> Results & Winners
@@ -121,8 +125,10 @@ export default function Highlights() {
             ) : (
               <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-                gap: 16,
+                gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
+                gap: '20px',
+                maxWidth: '1000px',
+                margin: '0 auto',
               }}>
                 {highlights.map((h, i) => (
                   <div
@@ -130,39 +136,28 @@ export default function Highlights() {
                     onClick={() => openLightbox(h)}
                     style={{
                       position: 'relative', overflow: 'hidden',
-                      cursor: 'pointer', aspectRatio: i % 5 === 0 ? '16/9' : '4/3',
-                      gridColumn: i % 5 === 0 ? 'span 2' : 'span 1',
+                      cursor: 'pointer', aspectRatio: '4/3',
+                      borderRadius: '12px',
                       border: '1px solid var(--border)',
                       transition: 'all 0.4s ease',
                     }}
                     onMouseEnter={e => {
                       e.currentTarget.querySelector('img').style.transform = 'scale(1.08)'
-                      e.currentTarget.querySelector('.overlay').style.opacity = '1'
+                      e.currentTarget.style.borderColor = 'rgba(170,136,255,0.4)'
+                      e.currentTarget.style.boxShadow = '0 8px 24px rgba(170,136,255,0.15)'
                     }}
                     onMouseLeave={e => {
                       e.currentTarget.querySelector('img').style.transform = 'scale(1)'
-                      e.currentTarget.querySelector('.overlay').style.opacity = '0'
+                      e.currentTarget.style.borderColor = 'var(--border)'
+                      e.currentTarget.style.boxShadow = 'none'
                     }}
                   >
                     <img
                       src={h.image_url}
-                      alt={h.description}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(0.7) saturate(1.2)', transition: 'transform 0.5s ease' }}
+                      alt="Event highlight"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s ease' }}
                     />
-                    <div className="overlay" style={{
-                      position: 'absolute', inset: 0,
-                      background: 'linear-gradient(180deg, transparent 30%, rgba(0,0,0,0.8) 100%)',
-                      opacity: 0, transition: 'opacity 0.3s ease',
-                      display: 'flex', flexDirection: 'column', justifyContent: 'flex-end',
-                      padding: 20,
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                        <Image size={14} color="#aa88ff" />
-                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: '#aa88ff', letterSpacing: 2, textTransform: 'uppercase' }}>View Full</span>
-                      </div>
-                      <p style={{ color: 'var(--text-primary)', fontSize: '0.9rem', fontWeight: 600 }}>{h.description}</p>
-                    </div>
-                    {/* Corner accent */}
+                    {/* Corner accents */}
                     <div style={{ position: 'absolute', top: 0, left: 0, width: 20, height: 20, borderTop: '2px solid #aa88ff', borderLeft: '2px solid #aa88ff' }} />
                     <div style={{ position: 'absolute', bottom: 0, right: 0, width: 20, height: 20, borderBottom: '2px solid #aa88ff', borderRight: '2px solid #aa88ff' }} />
                   </div>
@@ -185,65 +180,81 @@ export default function Highlights() {
                 <p>No results announced yet. Check back soon!</p>
               </div>
             ) : (
-              <div style={{ display: 'grid', gap: '2rem' }}>
+              <div style={{ display: 'grid', gap: 'clamp(1.5rem, 3vw, 2.5rem)' }}>
                 {results.map((result) => {
                   const comp = competitions[result.competition_id]
                   return (
                     <div key={result.id} style={{
-                      padding: '2rem',
-                      background: 'rgba(170,136,255,0.05)',
-                      border: '2px solid rgba(170,136,255,0.2)',
-                      borderRadius: 12,
+                      padding: 'clamp(1.5rem, 4vw, 2rem)',
+                      background: 'linear-gradient(135deg, rgba(170,136,255,0.08) 0%, rgba(170,136,255,0.03) 100%)',
+                      border: '2px solid rgba(170,136,255,0.25)',
+                      borderRadius: 'clamp(10px, 2vw, 16px)',
                       borderLeft: '5px solid #aa88ff',
-                    }}>
+                      transition: 'all 0.3s ease',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(170,136,255,0.4)'; e.currentTarget.style.boxShadow = '0 8px 32px rgba(170,136,255,0.1)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(170,136,255,0.25)'; e.currentTarget.style.boxShadow = 'none'; }}
+                    >
                       {/* Header */}
-                      <div style={{ marginBottom: '1.5rem' }}>
+                      <div style={{ marginBottom: 'clamp(1rem, 3vw, 1.5rem)' }}>
                         <h2 style={{
-                          fontSize: '1.6rem',
+                          fontSize: 'clamp(1.3rem, 5vw, 1.8rem)',
                           fontWeight: 700,
-                          color: '#e8eaf6',
-                          marginBottom: 4,
+                          color: '#aa88ff',
+                          marginBottom: 8,
                           fontFamily: 'var(--font-sans)',
                           letterSpacing: 1,
                         }}>
                           {comp?.title || `Competition #${result.competition_id}`}
                         </h2>
-                        {result.announced_at && (
-                          <p style={{ color: '#8892b0', fontSize: '0.85rem' }}>
-                            🏆 Results announced on {new Date(result.announced_at).toLocaleDateString()}
-                          </p>
-                        )}
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'clamp(0.5rem, 2vw, 1rem)', color: '#8892b0', fontSize: 'clamp(0.75rem, 1.5vw, 0.9rem)' }}>
+                          {result.announced_at && (
+                            <span>🏆 Announced: {new Date(result.announced_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+                          )}
+                          {result.cash_prize && (
+                            <span>💰 Prize: {result.cash_prize}</span>
+                          )}
+                        </div>
                       </div>
 
                       {/* Winners Grid */}
                       <div style={{
                         display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-                        gap: '1.5rem',
-                        marginBottom: '1.5rem',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(clamp(200px, 100%, 280px), 1fr))',
+                        gap: 'clamp(1rem, 2vw, 1.5rem)',
+                        marginBottom: 'clamp(1rem, 3vw, 1.5rem)',
                       }}>
                         {/* 1st Place */}
                         <div style={{
-                          padding: '1.5rem',
-                          background: 'rgba(255,215,0,0.1)',
-                          border: '2px solid rgba(255,215,0,0.3)',
-                          borderRadius: 10,
+                          padding: 'clamp(1rem, 3vw, 1.5rem)',
+                          background: 'linear-gradient(135deg, rgba(255,215,0,0.12) 0%, rgba(255,215,0,0.06) 100%)',
+                          border: '2px solid rgba(255,215,0,0.35)',
+                          borderRadius: 'clamp(8px, 2vw, 12px)',
                           textAlign: 'center',
-                        }}>
-                          <div style={{ fontSize: '3rem', marginBottom: 8 }}>🥇</div>
-                          <div style={{ color: '#ffd700', fontWeight: 700, fontSize: '0.85rem', letterSpacing: 1.5, marginBottom: 8 }}>
+                          transition: 'all 0.3s ease',
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(255,215,0,0.15)'; }}
+                        onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
+                        >
+                          <div style={{ fontSize: 'clamp(2rem, 8vw, 3rem)', marginBottom: 8 }}>🥇</div>
+                          <div style={{ color: '#ffd700', fontWeight: 700, fontSize: 'clamp(0.75rem, 1.5vw, 0.9rem)', letterSpacing: 1.5, marginBottom: 8, textTransform: 'uppercase' }}>
                             1ST PLACE
                           </div>
                           <p style={{
-                            fontSize: '1rem',
+                            fontSize: 'clamp(0.9rem, 2vw, 1.1rem)',
                             fontWeight: 600,
                             color: '#e8eaf6',
                             marginBottom: 8,
                           }}>
                             {result.first_place}
                           </p>
+                          {result.first_university && (
+                            <p style={{ fontSize: 'clamp(0.7rem, 1.5vw, 0.8rem)', color: '#8892b0', marginBottom: 6, fontFamily: 'var(--font-mono)', letterSpacing: 0.5 }}>
+                              📚 {result.first_university}
+                            </p>
+                          )}
                           {result.first_place_info && (
-                            <p style={{ fontSize: '0.8rem', color: '#8892b0' }}>
+                            <p style={{ fontSize: 'clamp(0.7rem, 1.5vw, 0.8rem)', color: '#8892b0' }}>
                               {result.first_place_info}
                             </p>
                           )}
@@ -252,26 +263,35 @@ export default function Highlights() {
                         {/* 2nd Place */}
                         {result.second_place && (
                           <div style={{
-                            padding: '1.5rem',
-                            background: 'rgba(192,192,192,0.08)',
-                            border: '2px solid rgba(192,192,192,0.2)',
-                            borderRadius: 10,
+                            padding: 'clamp(1rem, 3vw, 1.5rem)',
+                            background: 'linear-gradient(135deg, rgba(192,192,192,0.1) 0%, rgba(192,192,192,0.05) 100%)',
+                            border: '2px solid rgba(192,192,192,0.25)',
+                            borderRadius: 'clamp(8px, 2vw, 12px)',
                             textAlign: 'center',
-                          }}>
-                            <div style={{ fontSize: '3rem', marginBottom: 8 }}>🥈</div>
-                            <div style={{ color: '#c0c0c0', fontWeight: 700, fontSize: '0.85rem', letterSpacing: 1.5, marginBottom: 8 }}>
+                            transition: 'all 0.3s ease',
+                          }}
+                          onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(192,192,192,0.1)'; }}
+                          onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
+                          >
+                            <div style={{ fontSize: 'clamp(2rem, 8vw, 3rem)', marginBottom: 8 }}>🥈</div>
+                            <div style={{ color: '#c0c0c0', fontWeight: 700, fontSize: 'clamp(0.75rem, 1.5vw, 0.9rem)', letterSpacing: 1.5, marginBottom: 8, textTransform: 'uppercase' }}>
                               2ND PLACE
                             </div>
                             <p style={{
-                              fontSize: '1rem',
+                              fontSize: 'clamp(0.9rem, 2vw, 1.1rem)',
                               fontWeight: 600,
                               color: '#e8eaf6',
                               marginBottom: 8,
                             }}>
                               {result.second_place}
                             </p>
+                            {result.second_university && (
+                              <p style={{ fontSize: 'clamp(0.7rem, 1.5vw, 0.8rem)', color: '#8892b0', marginBottom: 6, fontFamily: 'var(--font-mono)', letterSpacing: 0.5 }}>
+                                📚 {result.second_university}
+                              </p>
+                            )}
                             {result.second_place_info && (
-                              <p style={{ fontSize: '0.8rem', color: '#8892b0' }}>
+                              <p style={{ fontSize: 'clamp(0.7rem, 1.5vw, 0.8rem)', color: '#8892b0' }}>
                                 {result.second_place_info}
                               </p>
                             )}
@@ -281,26 +301,35 @@ export default function Highlights() {
                         {/* 3rd Place */}
                         {result.third_place && (
                           <div style={{
-                            padding: '1.5rem',
-                            background: 'rgba(205,127,50,0.08)',
-                            border: '2px solid rgba(205,127,50,0.2)',
-                            borderRadius: 10,
+                            padding: 'clamp(1rem, 3vw, 1.5rem)',
+                            background: 'linear-gradient(135deg, rgba(205,127,50,0.1) 0%, rgba(205,127,50,0.05) 100%)',
+                            border: '2px solid rgba(205,127,50,0.25)',
+                            borderRadius: 'clamp(8px, 2vw, 12px)',
                             textAlign: 'center',
-                          }}>
-                            <div style={{ fontSize: '3rem', marginBottom: 8 }}>🥉</div>
-                            <div style={{ color: '#cd7f32', fontWeight: 700, fontSize: '0.85rem', letterSpacing: 1.5, marginBottom: 8 }}>
+                            transition: 'all 0.3s ease',
+                          }}
+                          onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(205,127,50,0.1)'; }}
+                          onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
+                          >
+                            <div style={{ fontSize: 'clamp(2rem, 8vw, 3rem)', marginBottom: 8 }}>🥉</div>
+                            <div style={{ color: '#cd7f32', fontWeight: 700, fontSize: 'clamp(0.75rem, 1.5vw, 0.9rem)', letterSpacing: 1.5, marginBottom: 8, textTransform: 'uppercase' }}>
                               3RD PLACE
                             </div>
                             <p style={{
-                              fontSize: '1rem',
+                              fontSize: 'clamp(0.9rem, 2vw, 1.1rem)',
                               fontWeight: 600,
                               color: '#e8eaf6',
                               marginBottom: 8,
                             }}>
                               {result.third_place}
                             </p>
+                            {result.third_university && (
+                              <p style={{ fontSize: 'clamp(0.7rem, 1.5vw, 0.8rem)', color: '#8892b0', marginBottom: 6, fontFamily: 'var(--font-mono)', letterSpacing: 0.5 }}>
+                                📚 {result.third_university}
+                              </p>
+                            )}
                             {result.third_place_info && (
-                              <p style={{ fontSize: '0.8rem', color: '#8892b0' }}>
+                              <p style={{ fontSize: 'clamp(0.7rem, 1.5vw, 0.8rem)', color: '#8892b0' }}>
                                 {result.third_place_info}
                               </p>
                             )}
@@ -310,19 +339,22 @@ export default function Highlights() {
 
                       {/* Result Image */}
                       {result.result_image_url && (
-                        <div style={{ marginBottom: '1.5rem' }}>
+                        <div style={{ marginBottom: 'clamp(1rem, 3vw, 1.5rem)' }}>
                           <img
                             src={result.result_image_url}
                             alt="Result"
                             style={{
                               width: '100%',
-                              maxHeight: 300,
+                              maxHeight: 'clamp(200px, 50vh, 350px)',
                               objectFit: 'cover',
-                              borderRadius: 10,
-                              border: '1px solid rgba(170,136,255,0.2)',
+                              borderRadius: 'clamp(8px, 2vw, 12px)',
+                              border: '1px solid rgba(170,136,255,0.25)',
                               cursor: 'pointer',
+                              transition: 'all 0.3s ease',
                             }}
                             onClick={() => setLightbox(result)}
+                            onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.02)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(170,136,255,0.2)'; }}
+                            onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = 'none'; }}
                           />
                         </div>
                       )}
@@ -330,13 +362,13 @@ export default function Highlights() {
                       {/* Description */}
                       {result.result_description && (
                         <div style={{
-                          padding: '1rem',
+                          padding: 'clamp(1rem, 2vw, 1.25rem)',
                           background: 'rgba(170,136,255,0.08)',
-                          border: '1px solid rgba(170,136,255,0.15)',
-                          borderRadius: 8,
-                          lineHeight: 1.6,
+                          border: '1px solid rgba(170,136,255,0.2)',
+                          borderRadius: 'clamp(8px, 2vw, 10px)',
+                          lineHeight: 1.7,
                         }}>
-                          <p style={{ color: '#e8eaf6', fontSize: '0.95rem', whiteSpace: 'pre-wrap' }}>
+                          <p style={{ color: '#e8eaf6', fontSize: 'clamp(0.8rem, 1.5vw, 0.95rem)', whiteSpace: 'pre-wrap', margin: 0 }}>
                             {result.result_description}
                           </p>
                         </div>

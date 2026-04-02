@@ -14,12 +14,16 @@ export default function AdminResults() {
     competition_id: '',
     first_place: '',
     first_place_info: '',
+    first_university: '',
     second_place: '',
     second_place_info: '',
+    second_university: '',
     third_place: '',
     third_place_info: '',
+    third_university: '',
     result_description: '',
     result_image_url: '',
+    cash_prize: '',
     is_published: false,
   });
 
@@ -79,18 +83,6 @@ export default function AdminResults() {
       }
       setSelected(null);
       setIsEditing(false);
-      setFormData({
-        competition_id: '',
-        first_place: '',
-        first_place_info: '',
-        second_place: '',
-        second_place_info: '',
-        third_place: '',
-        third_place_info: '',
-        result_description: '',
-        result_image_url: '',
-        is_published: false,
-      });
       loadData();
     } catch (err) {
       toast.error('Error: ' + err.message);
@@ -114,12 +106,16 @@ export default function AdminResults() {
       competition_id: result.competition_id,
       first_place: result.first_place || '',
       first_place_info: result.first_place_info || '',
+      first_university: result.first_university || '',
       second_place: result.second_place || '',
       second_place_info: result.second_place_info || '',
+      second_university: result.second_university || '',
       third_place: result.third_place || '',
       third_place_info: result.third_place_info || '',
+      third_university: result.third_university || '',
       result_description: result.result_description || '',
       result_image_url: result.result_image_url || '',
+      cash_prize: result.cash_prize || '',
       is_published: result.is_published || false,
     });
     setIsEditing(true);
@@ -148,12 +144,16 @@ export default function AdminResults() {
                 competition_id: '',
                 first_place: '',
                 first_place_info: '',
+                first_university: '',
                 second_place: '',
                 second_place_info: '',
+                second_university: '',
                 third_place: '',
                 third_place_info: '',
+                third_university: '',
                 result_description: '',
                 result_image_url: '',
+                cash_prize: '',
                 is_published: false,
               });
             }}
@@ -364,6 +364,19 @@ export default function AdminResults() {
                   style={{ width: '100%', padding: '10px 12px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(0,212,255,0.2)', color: '#e8eaf6', borderRadius: 4, fontSize: '0.88rem' }}
                 />
               </div>
+              <div>
+                <label style={{ display: 'block', color: '#8892b0', fontSize: '0.84rem', marginBottom: 8 }}>
+                  University / Institution
+                </label>
+                <input
+                  type="text"
+                  name="first_university"
+                  value={formData.first_university}
+                  onChange={handleInputChange}
+                  placeholder="e.g., MIT, Stanford University"
+                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(0,212,255,0.2)', color: '#e8eaf6', borderRadius: 4, fontSize: '0.88rem' }}
+                />
+              </div>
 
               {/* 2nd Place */}
               <div>
@@ -389,6 +402,19 @@ export default function AdminResults() {
                   value={formData.second_place_info}
                   onChange={handleInputChange}
                   placeholder="Optional details"
+                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(0,212,255,0.2)', color: '#e8eaf6', borderRadius: 4, fontSize: '0.88rem' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', color: '#8892b0', fontSize: '0.84rem', marginBottom: 8 }}>
+                  University / Institution
+                </label>
+                <input
+                  type="text"
+                  name="second_university"
+                  value={formData.second_university}
+                  onChange={handleInputChange}
+                  placeholder="e.g., MIT, Stanford University"
                   style={{ width: '100%', padding: '10px 12px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(0,212,255,0.2)', color: '#e8eaf6', borderRadius: 4, fontSize: '0.88rem' }}
                 />
               </div>
@@ -420,6 +446,19 @@ export default function AdminResults() {
                   style={{ width: '100%', padding: '10px 12px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(0,212,255,0.2)', color: '#e8eaf6', borderRadius: 4, fontSize: '0.88rem' }}
                 />
               </div>
+              <div>
+                <label style={{ display: 'block', color: '#8892b0', fontSize: '0.84rem', marginBottom: 8 }}>
+                  University / Institution
+                </label>
+                <input
+                  type="text"
+                  name="third_university"
+                  value={formData.third_university}
+                  onChange={handleInputChange}
+                  placeholder="e.g., MIT, Stanford University"
+                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(0,212,255,0.2)', color: '#e8eaf6', borderRadius: 4, fontSize: '0.88rem' }}
+                />
+              </div>
 
               {/* Description */}
               <div>
@@ -446,6 +485,21 @@ export default function AdminResults() {
                   value={formData.result_image_url}
                   onChange={handleInputChange}
                   placeholder="https://example.com/image.jpg"
+                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(0,212,255,0.2)', color: '#e8eaf6', borderRadius: 4, fontSize: '0.88rem' }}
+                />
+              </div>
+
+              {/* Cash Prize */}
+              <div>
+                <label style={{ display: 'block', color: '#8892b0', fontSize: '0.84rem', marginBottom: 8, fontWeight: 600 }}>
+                  💰 Cash Prize or Reward
+                </label>
+                <input
+                  type="text"
+                  name="cash_prize"
+                  value={formData.cash_prize}
+                  onChange={handleInputChange}
+                  placeholder="e.g., $5000, Rs. 50,000, Internship offer"
                   style={{ width: '100%', padding: '10px 12px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(0,212,255,0.2)', color: '#e8eaf6', borderRadius: 4, fontSize: '0.88rem' }}
                 />
               </div>

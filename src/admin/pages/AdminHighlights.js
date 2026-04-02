@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 export default function AdminHighlights() {
   const [highlights, setHighlights] = useState([]);
   const [modal, setModal] = useState(false);
-  const [form, setForm] = useState({ image_url:'', description:'' });
+  const [form, setForm] = useState({ image_url:'' });
 
   const load = () => supabase.from('highlights').select('*').then(({data})=>setHighlights(data||[]));
   useEffect(()=>{ load(); },[]);
@@ -16,7 +16,7 @@ export default function AdminHighlights() {
     if (!form.image_url) { toast.error('Image URL required'); return; }
     const { error } = await supabase.from('highlights').insert([form]);
     if (error) { toast.error('Error adding'); return; }
-    toast.success('Highlight added!'); setModal(false); setForm({image_url:'',description:''}); load();
+    toast.success('Highlight added!'); setModal(false); setForm({image_url:''}); load();
   };
 
   const del = async (id) => {
@@ -41,9 +41,8 @@ export default function AdminHighlights() {
           {highlights.length === 0 && <p style={{ color:'#8892b0', fontFamily:'JetBrains Mono', fontSize:'0.85rem' }}>No highlights yet. Add image URLs to create your gallery.</p>}
           {highlights.map(h=>(
             <div key={h.id} style={{ position:'relative', border:'1px solid rgba(0,212,255,0.15)' }}>
-              <img src={h.image_url} alt={h.description} style={{ width:'100%', height:180, objectFit:'cover', display:'block' }} />
-              <div style={{ padding:'0.75rem', background:'rgba(5,8,16,0.9)' }}>
-                <p style={{ color:'#8892b0', fontSize:'0.85rem', marginBottom:8 }}>{h.description||'No description'}</p>
+              <img src={h.image_url} alt="Highlight" style={{ width:'100%', height:180, objectFit:'cover', display:'block' }} />
+              <div style={{ padding:'0.75rem', background:'rgba(5,8,16,0.9)', display:'flex', justifyContent:'flex-end' }}>
                 <button onClick={()=>del(h.id)} style={{ background:'rgba(255,61,119,0.1)', border:'1px solid rgba(255,61,119,0.3)', color:'#ff3d77', cursor:'pointer', padding:'6px 12px', display:'flex', alignItems:'center', gap:6, fontFamily:'Rajdhani', fontWeight:600, fontSize:'0.8rem' }}>
                   <Trash2 size={12}/> Remove
                 </button>
@@ -62,9 +61,6 @@ export default function AdminHighlights() {
             </div>
             <label style={{ display:'block', color:'#8892b0', fontFamily:'Bebas Neue', letterSpacing:1, fontSize:'0.85rem', marginBottom:4 }}>Image URL (GitHub or CDN)</label>
             <input value={form.image_url} onChange={e=>setForm({...form,image_url:e.target.value})} placeholder="https://..." style={inputSt}
-              onFocus={e=>e.target.style.borderColor='#00d4ff'} onBlur={e=>e.target.style.borderColor='rgba(0,212,255,0.2)'}/>
-            <label style={{ display:'block', color:'#8892b0', fontFamily:'Bebas Neue', letterSpacing:1, fontSize:'0.85rem', marginBottom:4 }}>Description</label>
-            <input value={form.description} onChange={e=>setForm({...form,description:e.target.value})} placeholder="Speed Programming Finals..." style={inputSt}
               onFocus={e=>e.target.style.borderColor='#00d4ff'} onBlur={e=>e.target.style.borderColor='rgba(0,212,255,0.2)'}/>
             {form.image_url && <img src={form.image_url} alt="" style={{ width:'100%', maxHeight:160, objectFit:'cover', marginBottom:'1rem', border:'1px solid rgba(0,212,255,0.15)' }} onError={e=>e.target.style.display='none'} />}
             <button onClick={save} className="btn-neon" style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:8, cursor:'pointer' }}>

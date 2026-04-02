@@ -216,3 +216,20 @@ ON CONFLICT (key) DO NOTHING;
 -- 3. Enable "service_role" for admin user creation
 -- 4. Configure SMTP for sending credential emails (optional)
 -- ============================================================
+
+-- ============================================================
+-- MIGRATION: Add University & Prize Fields (Run if needed)
+-- ============================================================
+-- Uncomment and run these if the columns don't exist:
+-- ALTER TABLE competition_results ADD COLUMN IF NOT EXISTS first_university TEXT;
+-- ALTER TABLE competition_results ADD COLUMN IF NOT EXISTS second_university TEXT;
+-- ALTER TABLE competition_results ADD COLUMN IF NOT EXISTS third_university TEXT;
+-- ALTER TABLE competition_results ADD COLUMN IF NOT EXISTS cash_prize TEXT;
+-- ============================================================
+
+-- ============================================================
+-- MIGRATION: Remove Description from Highlights (Run if needed)
+-- ============================================================
+-- Uncomment and run this to remove the description column:
+-- ALTER TABLE highlights DROP COLUMN IF EXISTS description;
+-- ============================================================
