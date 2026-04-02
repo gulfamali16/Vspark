@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Clock, Trophy, ChevronDown, ChevronUp, Megaphone, Calendar } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { supabase } from '../lib/supabase';
@@ -9,6 +9,7 @@ export default function Competitions() {
   const [comps, setComps] = useState([]);
   const [expanded, setExpanded] = useState(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     supabase.from('competitions').select('*').eq('is_active', true).order('title')
@@ -17,6 +18,12 @@ export default function Competitions() {
         setLoading(false);
       });
   }, []);
+
+  // Navigate to register with this competition pre-selected
+  const handleRegister = (e, comp) => {
+    e.stopPropagation();
+    navigate(`/register?comp=${comp.id}&compName=${encodeURIComponent(comp.title)}`);
+  };
 
   if (loading) return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -31,12 +38,12 @@ export default function Competitions() {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
       <Navbar />
-
       <section style={{ padding: '10rem 2rem 5rem', textAlign: 'center', background: 'radial-gradient(ellipse at top,rgba(0,212,255,0.08) 0%,transparent 60%)' }}>
         <span className="tag" style={{ display: 'inline-block', marginBottom: '1rem' }}>All Events</span>
         <h1 className="section-title" style={{ display: 'block', marginBottom: '1rem' }}>Competitions</h1>
         <p style={{ color: '#8892b0', maxWidth: 580, margin: '0 auto', lineHeight: 1.7, fontSize: '1.02rem' }}>
           {comps.length} competition{comps.length !== 1 ? 's' : ''} — each with prizes, registration fees, and internship opportunities.
+          You can register for multiple competitions.
         </p>
       </section>
 
@@ -82,7 +89,6 @@ export default function Competitions() {
                 {/* Expanded */}
                 {isOpen && (
                   <div style={{ marginTop: '1.25rem' }}>
-
                     {/* Date announcement */}
                     <div style={{ padding: '0.75rem 1rem', background: comp.date_announced ? 'rgba(0,212,255,0.07)' : 'rgba(255,107,0,0.07)', border: `1px solid ${comp.date_announced ? 'rgba(0,212,255,0.2)' : 'rgba(255,107,0,0.2)'}`, marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: 8 }}>
                       {comp.date_announced
@@ -120,9 +126,14 @@ export default function Competitions() {
                       </div>
                     )}
 
-                    <Link to="/register" className="btn-neon" style={{ textDecoration: 'none', fontSize: '0.88rem', padding: '10px 22px', display: 'inline-block' }} onClick={e => e.stopPropagation()}>
+                    {/* Register button — passes this comp ID to register page */}
+                    <button
+                      onClick={(e) => handleRegister(e, comp)}
+                      className="btn-neon"
+                      style={{ fontSize: '0.88rem', padding: '10px 22px', cursor: 'pointer', border: 'none' }}
+                    >
                       Register — PKR {comp.fee?.toLocaleString()}
-                    </Link>
+                    </button>
                   </div>
                 )}
               </div>
