@@ -44,16 +44,17 @@ export default function Highlights() {
         setCompetitions(compsLookup)
 
         // Load published results
-        const { data: resultsData } = await supabase
+        const { data: resultsData, error: resultsError } = await supabase
           .from('competition_results')
           .select('*')
           .eq('is_published', true)
           .order('announced_at', { ascending: false })
 
+        console.log('Results loaded:', resultsData, 'Error:', resultsError)
         setResults(resultsData || [])
         setLoading(false)
       } catch (err) {
-        console.error(err)
+        console.error('Error loading highlights:', err)
         setHighlights(fallbackHighlights)
         setLoading(false)
       }
