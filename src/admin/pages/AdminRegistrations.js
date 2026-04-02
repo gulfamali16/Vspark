@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Download, CheckCircle, XCircle, Eye, X, Clock } from 'lucide-react';
+import { Search, Download, CheckCircle, XCircle, Eye, X, Clock, MessageCircle } from 'lucide-react';
 import AdminSidebar from '../components/AdminSidebar';
 import { supabase } from '../../lib/supabase';
 import toast from 'react-hot-toast';
@@ -324,7 +324,6 @@ export default function AdminRegistrations() {
               {[
                 ['Student Name',  selected.student_name],
                 ['Email',         selected.email],
-                ['Phone',         selected.phone || '—'],
                 ['Reg Number',    selected.reg_number],
                 ['Institute',     selected.institute],
                 ['Department',    selected.department],
@@ -335,6 +334,47 @@ export default function AdminRegistrations() {
                   <span style={{ color: '#e8eaf6', fontSize: '0.87rem', fontWeight: 600 }}>{v}</span>
                 </div>
               ))}
+
+              {/* Phone with WhatsApp contact button */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '7px 0', borderBottom: '1px solid rgba(0,212,255,0.06)' }}>
+                <span style={{ color: '#8892b0', fontSize: '0.84rem', minWidth: 140 }}>Phone</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', flex: 1 }}>
+                  <span style={{ color: '#e8eaf6', fontSize: '0.87rem', fontWeight: 600 }}>
+                    {selected.phone || '—'}
+                  </span>
+                  {selected.phone && (
+                    <a
+                      href={`https://wa.me/${selected.phone.replace(/\D/g, '')}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      title="Contact via WhatsApp"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: 28,
+                        height: 28,
+                        background: 'rgba(34, 177, 76, 0.15)',
+                        border: '1px solid rgba(34, 177, 76, 0.4)',
+                        color: '#22b14c',
+                        cursor: 'pointer',
+                        borderRadius: '4px',
+                        transition: 'all 0.2s ease',
+                      }}
+                      onMouseEnter={e => {
+                        e.currentTarget.style.background = 'rgba(34, 177, 76, 0.25)';
+                        e.currentTarget.style.borderColor = 'rgba(34, 177, 76, 0.6)';
+                      }}
+                      onMouseLeave={e => {
+                        e.currentTarget.style.background = 'rgba(34, 177, 76, 0.15)';
+                        e.currentTarget.style.borderColor = 'rgba(34, 177, 76, 0.4)';
+                      }}
+                    >
+                      <MessageCircle size={14} />
+                    </a>
+                  )}
+                </div>
+              </div>
 
               {/* Screenshot */}
               {selected.screenshot_url && (
