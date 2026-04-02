@@ -89,6 +89,25 @@ export const deleteHighlight = async (id) => {
   return { error }
 }
 
+// Competitions
+export const getCompetitions = async () => {
+  const { data, error } = await supabase
+    .from('competitions')
+    .select('id, title, color')
+    .eq('is_active', true)
+  return { data, error }
+}
+
+// Competition Results
+export const getResultsPublished = async () => {
+  const { data, error } = await supabase
+    .from('competition_results')
+    .select('*')
+    .eq('is_published', true)
+    .order('announced_at', { ascending: false })
+  return { data, error }
+}
+
 // Auth
 export const adminLogin = async (email, password) => {
   const { data, error } = await supabase.auth.signInWithPassword({ email, password })

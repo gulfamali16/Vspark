@@ -79,7 +79,25 @@ CREATE TABLE IF NOT EXISTS highlights (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 7. Site Settings Table (key-value store)
+-- 7. Results Table (Competition Results with Rankings)
+CREATE TABLE IF NOT EXISTS competition_results (
+  id BIGSERIAL PRIMARY KEY,
+  competition_id BIGINT NOT NULL REFERENCES competitions(id) ON DELETE CASCADE,
+  first_place TEXT,
+  first_place_info TEXT,
+  second_place TEXT,
+  second_place_info TEXT,
+  third_place TEXT,
+  third_place_info TEXT,
+  result_description TEXT,
+  result_image_url TEXT,
+  is_published BOOLEAN DEFAULT false,
+  announced_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 8. Site Settings Table (key-value store)
 CREATE TABLE IF NOT EXISTS site_settings (
   id BIGSERIAL PRIMARY KEY,
   key TEXT UNIQUE NOT NULL,
@@ -96,6 +114,7 @@ ALTER TABLE credential_notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE blogs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE highlights ENABLE ROW LEVEL SECURITY;
+ALTER TABLE competition_results ENABLE ROW LEVEL SECURITY;
 ALTER TABLE site_settings ENABLE ROW LEVEL SECURITY;
 
 -- Public read access
@@ -103,6 +122,7 @@ CREATE POLICY "Public read competitions" ON competitions FOR SELECT USING (is_ac
 CREATE POLICY "Public read events" ON events FOR SELECT USING (true);
 CREATE POLICY "Public read blogs" ON blogs FOR SELECT USING (true);
 CREATE POLICY "Public read highlights" ON highlights FOR SELECT USING (true);
+CREATE POLICY "Public read results" ON competition_results FOR SELECT USING (is_published = true);
 CREATE POLICY "Public read site_settings" ON site_settings FOR SELECT USING (true);
 
 -- Public can submit registration requests
@@ -115,6 +135,7 @@ CREATE POLICY "Admin all notifications" ON credential_notifications USING (auth.
 CREATE POLICY "Admin all events" ON events USING (auth.role() = 'authenticated');
 CREATE POLICY "Admin all blogs" ON blogs USING (auth.role() = 'authenticated');
 CREATE POLICY "Admin all highlights" ON highlights USING (auth.role() = 'authenticated');
+CREATE POLICY "Admin all results" ON competition_results USING (auth.role() = 'authenticated');
 CREATE POLICY "Admin all settings" ON site_settings USING (auth.role() = 'authenticated');
 
 -- ============================================================

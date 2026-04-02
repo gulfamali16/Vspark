@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Calendar, CalendarDays, Users,
   FileText, Image, LogOut, ChevronRight,
-  Swords, Settings, GraduationCap, UserCog, Shield
+  Swords, Settings, GraduationCap, UserCog, Shield, Trophy
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
@@ -11,6 +11,7 @@ const ALL_ITEMS = [
   { to: '/admin', icon: LayoutDashboard, label: 'Dashboard', perm: null },
   { to: '/admin/registrations', icon: Users, label: 'Registrations', perm: 'registrations', badge: true },
   { to: '/admin/competitions', icon: Swords, label: 'Competitions', perm: 'competitions' },
+  { to: '/admin/results', icon: Trophy, label: 'Results', perm: 'results' },
   { to: '/admin/schedule', icon: Calendar, label: 'Schedule', perm: 'schedule' },
   { to: '/admin/events', icon: CalendarDays, label: 'Events', perm: 'events' },
   { to: '/admin/department', icon: GraduationCap, label: 'CS Department', perm: 'department' },

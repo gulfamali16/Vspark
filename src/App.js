@@ -20,6 +20,7 @@ import AdminEvents from './admin/pages/AdminEvents';
 import AdminRegistrations from './admin/pages/AdminRegistrations';
 import AdminBlogs from './admin/pages/AdminBlogs';
 import AdminHighlights from './admin/pages/AdminHighlights';
+import AdminResults from './admin/pages/AdminResults';
 import AdminCompetitions from './admin/pages/AdminCompetitions';
 import AdminSettings from './admin/pages/AdminSettings';
 import AdminRoute from './admin/components/AdminRoute';
@@ -50,6 +51,7 @@ export default function App() {
         <Route path="/admin/events" element={<AdminRoute><AdminEvents /></AdminRoute>} />
         <Route path="/admin/competitions" element={<AdminRoute><AdminCompetitions /></AdminRoute>} />
         <Route path="/admin/registrations" element={<AdminRoute><AdminRegistrations /></AdminRoute>} />
+        <Route path="/admin/results" element={<AdminRoute><AdminResults /></AdminRoute>} />
         <Route path="/admin/blogs" element={<AdminRoute><AdminBlogs /></AdminRoute>} />
         <Route path="/admin/highlights" element={<AdminRoute><AdminHighlights /></AdminRoute>} />
         <Route path="/admin/settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />
