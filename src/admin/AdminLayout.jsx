@@ -1,3 +1,6 @@
+/**
+ * AdminLayout.jsx — Premium light-theme admin shell
+ */
 import React, { useState } from 'react'
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
 import { LayoutDashboard, Calendar, Users, BookOpen, Image, LogOut, Menu, X, Zap, ChevronRight } from 'lucide-react'
@@ -5,95 +8,69 @@ import { useAuth } from '../context/AuthContext'
 
 const VSPARK_LOGO = 'https://github.com/user-attachments/assets/898fc673-4cc8-440d-957e-21d6942085e5'
 
-const navItems = [
-  { to: '/admin', icon: <LayoutDashboard size={18} />, label: 'Dashboard', exact: true },
-  { to: '/admin/events', icon: <Calendar size={18} />, label: 'Events' },
-  { to: '/admin/registrations', icon: <Users size={18} />, label: 'Registrations' },
-  { to: '/admin/blogs', icon: <BookOpen size={18} />, label: 'Blogs' },
-  { to: '/admin/highlights', icon: <Image size={18} />, label: 'Highlights' },
+const NAV_ITEMS = [
+  { to:'/admin',               icon:<LayoutDashboard size={17}/>, label:'Dashboard',     exact:true },
+  { to:'/admin/events',        icon:<Calendar size={17}/>,        label:'Events' },
+  { to:'/admin/registrations', icon:<Users size={17}/>,           label:'Registrations' },
+  { to:'/admin/blogs',         icon:<BookOpen size={17}/>,        label:'Blogs' },
+  { to:'/admin/highlights',    icon:<Image size={17}/>,           label:'Highlights' },
 ]
 
 export default function AdminLayout() {
   const { user, signOut } = useAuth()
-  const location = useLocation()
-  const navigate = useNavigate()
+  const location  = useLocation()
+  const navigate  = useNavigate()
   const [mobileOpen, setMobileOpen] = useState(false)
 
-  const handleSignOut = async () => {
-    await signOut()
-    navigate('/admin/login')
-  }
-
+  const handleSignOut = async () => { await signOut(); navigate('/admin/login') }
   const isActive = (item) => item.exact ? location.pathname === item.to : location.pathname.startsWith(item.to)
 
   const SidebarContent = () => (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div style={{ display:'flex', flexDirection:'column', height:'100%' }}>
       {/* Logo */}
-      <div style={{ padding: '24px 20px', borderBottom: '1px solid var(--border)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-          <img src={VSPARK_LOGO} alt="VSpark" style={{ height: 32 }} />
-        </div>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(124,58,237,0.1)', border: '1px solid rgba(124,58,237,0.3)', borderRadius: 100, padding: '4px 12px' }}>
-          <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e' }} />
-          <span style={{ fontFamily: 'var(--font-heading)', fontSize: '0.7rem', color: '#7C3AED', fontWeight: 700, letterSpacing: '1px' }}>ADMIN PANEL</span>
+      <div style={{ padding:'24px 20px 20px', borderBottom:'1px solid #F3F4F6' }}>
+        <img src={VSPARK_LOGO} alt="VSpark" style={{ height:32, marginBottom:12 }} />
+        <div style={{ display:'inline-flex', alignItems:'center', gap:6, background:'#EEF2FF', border:'1px solid #C7D2FE', borderRadius:100, padding:'3px 10px' }}>
+          <div style={{ width:5, height:5, borderRadius:'50%', background:'#22C55E' }} />
+          <span style={{ fontSize:11, fontWeight:700, color:'#4F46E5', letterSpacing:'0.05em', textTransform:'uppercase' }}>Admin Panel</span>
         </div>
       </div>
 
       {/* Nav */}
-      <nav style={{ flex: 1, padding: '16px 12px' }}>
-        {navItems.map(item => {
+      <nav style={{ flex:1, padding:'16px 12px' }}>
+        {NAV_ITEMS.map(item => {
           const active = isActive(item)
           return (
-            <Link
-              key={item.to}
-              to={item.to}
-              onClick={() => setMobileOpen(false)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 12,
-                padding: '12px 16px',
-                borderRadius: 10,
-                marginBottom: 4,
-                textDecoration: 'none',
-                color: active ? 'white' : 'var(--text-muted)',
-                background: active ? 'linear-gradient(135deg, rgba(0,212,255,0.2), rgba(124,58,237,0.2))' : 'transparent',
-                border: active ? '1px solid rgba(0,212,255,0.2)' : '1px solid transparent',
-                fontFamily: 'var(--font-heading)',
-                fontWeight: 600,
-                fontSize: '0.875rem',
-                transition: 'all 0.2s',
-              }}
-              onMouseEnter={e => { if (!active) { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = 'var(--text)' } }}
-              onMouseLeave={e => { if (!active) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)' } }}
+            <Link key={item.to} to={item.to} onClick={() => setMobileOpen(false)} style={{
+              display:'flex', alignItems:'center', gap:10, padding:'10px 14px',
+              borderRadius:10, marginBottom:2, textDecoration:'none',
+              color:      active ? '#4F46E5' : '#6B7280',
+              background: active ? '#EEF2FF' : 'transparent',
+              fontWeight: active ? 600 : 500,
+              fontSize:   '14px',
+              transition: 'all 0.18s',
+            }}
+              onMouseEnter={e=>{ if (!active){ e.currentTarget.style.background='#F9FAFB'; e.currentTarget.style.color='#374151' } }}
+              onMouseLeave={e=>{ if (!active){ e.currentTarget.style.background='transparent'; e.currentTarget.style.color='#6B7280' } }}
             >
-              <span style={{ color: active ? 'var(--primary)' : 'inherit', flexShrink: 0 }}>{item.icon}</span>
-              {item.label}
-              {active && <ChevronRight size={14} style={{ marginLeft: 'auto', color: 'var(--primary)' }} />}
+              {item.icon} {item.label}
+              {active && <ChevronRight size={13} style={{ marginLeft:'auto', color:'#4F46E5' }} />}
             </Link>
           )
         })}
       </nav>
 
-      {/* User & Logout */}
-      <div style={{ padding: '16px 12px', borderTop: '1px solid var(--border)' }}>
-        <div style={{ padding: '12px 16px', background: 'var(--bg3)', borderRadius: 10, marginBottom: 8 }}>
-          <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: 2, fontFamily: 'var(--font-heading)', fontWeight: 600, letterSpacing: '0.5px', textTransform: 'uppercase' }}>Logged in as</div>
-          <div style={{ fontSize: '0.85rem', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.email}</div>
+      {/* User + logout */}
+      <div style={{ padding:'16px 12px', borderTop:'1px solid #F3F4F6' }}>
+        <div style={{ padding:'10px 14px', background:'#F9F7F4', borderRadius:10, marginBottom:8 }}>
+          <div style={{ fontSize:11, color:'#9CA3AF', marginBottom:2, fontWeight:600, letterSpacing:'0.04em', textTransform:'uppercase' }}>Logged in as</div>
+          <div style={{ fontSize:'0.84rem', fontWeight:600, color:'#0F172A', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{user?.email}</div>
         </div>
-        <button
-          onClick={handleSignOut}
-          style={{
-            width: '100%', display: 'flex', alignItems: 'center', gap: 10,
-            padding: '11px 16px', background: 'transparent',
-            border: '1px solid rgba(239,68,68,0.2)', borderRadius: 10,
-            color: '#f87171', cursor: 'pointer', fontFamily: 'var(--font-heading)',
-            fontWeight: 600, fontSize: '0.875rem', transition: 'all 0.2s',
-          }}
-          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.1)' }}
-          onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+        <button onClick={handleSignOut} style={{ width:'100%', display:'flex', alignItems:'center', gap:8, padding:'10px 14px', background:'transparent', border:'1.5px solid #FECACA', borderRadius:10, color:'#DC2626', cursor:'pointer', fontFamily:'var(--font-body)', fontWeight:600, fontSize:'14px', transition:'all 0.18s' }}
+          onMouseEnter={e=>{ e.currentTarget.style.background='#FEF2F2' }}
+          onMouseLeave={e=>{ e.currentTarget.style.background='transparent' }}
         >
-          <LogOut size={16} /> Sign Out
+          <LogOut size={15}/> Sign Out
         </button>
       </div>
     </div>
@@ -101,24 +78,22 @@ export default function AdminLayout() {
 
   return (
     <div className="admin-layout">
-      {/* Desktop Sidebar */}
-      <div className="admin-sidebar">
-        <SidebarContent />
-      </div>
+      {/* Desktop sidebar */}
+      <div className="admin-sidebar"><SidebarContent /></div>
 
       {/* Mobile header */}
-      <div style={{ display: 'none', position: 'fixed', top: 0, left: 0, right: 0, zIndex: 200, background: 'var(--surface)', borderBottom: '1px solid var(--border)', padding: '16px 20px', alignItems: 'center', justifyContent: 'space-between' }} className="mobile-admin-header">
-        <img src={VSPARK_LOGO} alt="VSpark" style={{ height: 28 }} />
-        <button onClick={() => setMobileOpen(!mobileOpen)} style={{ background: 'none', border: 'none', color: 'var(--text)', cursor: 'pointer' }}>
-          {mobileOpen ? <X size={24} /> : <Menu size={24} />}
+      <div style={{ display:'none', position:'fixed', top:0, left:0, right:0, zIndex:200, background:'#fff', borderBottom:'1px solid #E5E7EB', padding:'14px 20px', alignItems:'center', justifyContent:'space-between' }} className="mobile-admin-header">
+        <img src={VSPARK_LOGO} alt="VSpark" style={{ height:28 }} />
+        <button onClick={()=>setMobileOpen(!mobileOpen)} style={{ background:'none', border:'none', color:'#374151', cursor:'pointer' }}>
+          {mobileOpen ? <X size={22}/> : <Menu size={22}/>}
         </button>
       </div>
 
-      {/* Mobile sidebar overlay */}
+      {/* Mobile overlay */}
       {mobileOpen && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 150 }}>
-          <div onClick={() => setMobileOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)' }} />
-          <div style={{ position: 'absolute', top: 0, left: 0, width: 260, height: '100%', background: 'var(--surface)', borderRight: '1px solid var(--border)' }}>
+        <div style={{ position:'fixed', inset:0, zIndex:150 }}>
+          <div onClick={()=>setMobileOpen(false)} style={{ position:'absolute', inset:0, background:'rgba(15,23,42,0.4)' }} />
+          <div style={{ position:'absolute', top:0, left:0, width:260, height:'100%', background:'#fff', borderRight:'1px solid #E5E7EB' }}>
             <SidebarContent />
           </div>
         </div>
@@ -126,24 +101,17 @@ export default function AdminLayout() {
 
       {/* Main content */}
       <div className="admin-content">
-        {/* Top bar */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 40 }}>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:36 }}>
           <div>
-            <div style={{ fontFamily: 'var(--font-display)', fontSize: '0.65rem', letterSpacing: '3px', color: 'var(--primary)', textTransform: 'uppercase', marginBottom: 4 }}>
-              VSpark 2025
-            </div>
-            <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.5rem', fontWeight: 800 }}>
-              {navItems.find(n => isActive(n))?.label || 'Dashboard'}
+            <div style={{ fontSize:11, fontWeight:700, letterSpacing:'0.06em', color:'#4F46E5', textTransform:'uppercase', marginBottom:4 }}>VSpark 2025</div>
+            <h1 style={{ fontFamily:'var(--font-display)', fontSize:'1.5rem', fontWeight:800, color:'#0F172A' }}>
+              {NAV_ITEMS.find(n=>isActive(n))?.label || 'Dashboard'}
             </h1>
           </div>
-          <a href="/" target="_blank" style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--primary)', textDecoration: 'none', fontFamily: 'var(--font-heading)', fontWeight: 600, fontSize: '0.8rem', border: '1px solid rgba(0,212,255,0.2)', padding: '8px 16px', borderRadius: 8, transition: 'all 0.2s' }}
-            onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,212,255,0.05)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-          >
-            <Zap size={14} /> View Website
+          <a href="/" target="_blank" rel="noreferrer" className="btn-outline" style={{ fontSize:'13px', padding:'8px 16px' }}>
+            <Zap size={13}/> View Website
           </a>
         </div>
-
         <Outlet />
       </div>
 

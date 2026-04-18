@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
-import { Image as ImageIcon, X, Trophy, Award } from 'lucide-react'
+import { Image as ImageIcon, X, Trophy, Award, ZoomIn, ZoomOut } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { supabase } from '../lib/supabase'
@@ -13,6 +14,12 @@ const fallbackHighlights = [
   { id: 'h6', image_url: 'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=600', description: 'Team Networking Session' },
 ]
 
+const PLACE_CONFIG = [
+  { key: 'first',  emoji: '🥇', label: '1st Place', gold: true,   ring: 'ring-yellow-400',  bg: 'bg-yellow-50',  text: 'text-yellow-700',  info: '#D97706' },
+  { key: 'second', emoji: '🥈', label: '2nd Place', silver: true, ring: 'ring-gray-300',    bg: 'bg-gray-50',    text: 'text-gray-600',    info: '#6B7280' },
+  { key: 'third',  emoji: '🥉', label: '3rd Place', bronze: true, ring: 'ring-orange-300',  bg: 'bg-orange-50',  text: 'text-orange-700',  info: '#C2410C' },
+]
+
 export default function Highlights() {
   const [highlights, setHighlights] = useState([])
   const [results, setResults] = useState([])
@@ -20,437 +27,316 @@ export default function Highlights() {
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState(null)
   const [activeTab, setActiveTab] = useState('highlights')
+  const [isZoomed, setIsZoomed] = useState(false)
+
+  // Reset zoom when modal closes
+  useEffect(() => { if (!selected) setIsZoomed(false); }, [selected])
 
   useEffect(() => {
     const loadData = async () => {
       setLoading(true)
       try {
         const { data: highlightsData } = await supabase
-          .from('highlights')
-          .select('*')
-          .order('created_at', { ascending: false })
-
+          .from('highlights').select('*').order('created_at', { ascending: false })
         setHighlights(highlightsData?.length ? highlightsData : fallbackHighlights)
 
         const { data: compsData } = await supabase
-          .from('competitions')
-          .select('id, title, color')
-          .eq('is_active', true)
-
+          .from('competitions').select('id, title, color').eq('is_active', true)
         const compsLookup = {}
         compsData?.forEach(c => { compsLookup[c.id] = c })
         setCompetitions(compsLookup)
 
-        const { data: resultsData, error: resultsError } = await supabase
-          .from('competition_results')
-          .select('*')
-          .eq('is_published', true)
+        const { data: resultsData } = await supabase
+          .from('competition_results').select('*').eq('is_published', true)
           .order('announced_at', { ascending: false })
-
-        console.log('Results loaded:', resultsData, 'Error:', resultsError)
         setResults(resultsData || [])
-        setLoading(false)
       } catch (err) {
         console.error('Error loading highlights:', err)
         setHighlights(fallbackHighlights)
-        setLoading(false)
       }
+      setLoading(false)
     }
-
     loadData()
   }, [])
 
-  return (
-    <div>
-      <div className="grid-bg" />
-      <Navbar />
-      <div style={{ paddingTop: 100 }}>
-        <section style={{ padding: '60px 0 40px', textAlign: 'center' }}>
-          <div className="container">
-            <div className="badge" style={{ marginBottom: 24 }}>Gallery & Results</div>
-            <h1 className="section-title" style={{ marginBottom: 16 }}>
-              Event <span className="gradient-text">Highlights & Results</span>
-            </h1>
-            <p className="section-subtitle" style={{ margin: '0 auto 48px' }}>
-              Relive the best moments from past VSpark events — the energy, the competition, the winners.
-            </p>
-          </div>
-        </section>
+  const tabs = [
+    { id: 'highlights', label: 'Photos & Gallery', icon: ImageIcon },
+    { id: 'results',    label: 'Competition Results', icon: Trophy },
+  ]
 
-      {/* Tabs */}
-      <section style={{ padding: '20px 0 40px' }}>
-        <div className="container">
-          <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <button
-              onClick={() => setActiveTab('highlights')}
-              style={{
-                padding: '12px 24px',
-                background: activeTab === 'highlights' ? 'rgba(0,212,255,0.2)' : 'rgba(255,255,255,0.03)',
-                border: activeTab === 'highlights' ? '2px solid rgba(0,212,255,0.5)' : '1px solid rgba(0,212,255,0.2)',
-                color: activeTab === 'highlights' ? '#00d4ff' : '#8892b0',
-                cursor: 'pointer',
-                borderRadius: 10,
-                fontWeight: 600,
-                fontSize: 'clamp(0.85rem, 2vw, 1rem)',
-                transition: 'all 0.3s ease',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                fontFamily: 'var(--font-sans)',
-                letterSpacing: 0.5,
-              }}
-            >
-              <ImageIcon size={16} /> Photos & Gallery
-            </button>
-            <button
-              onClick={() => setActiveTab('results')}
-              style={{
-                padding: '12px 24px',
-                background: activeTab === 'results' ? 'rgba(0,212,255,0.2)' : 'rgba(255,255,255,0.03)',
-                border: activeTab === 'results' ? '2px solid rgba(0,212,255,0.5)' : '1px solid rgba(0,212,255,0.2)',
-                color: activeTab === 'results' ? '#00d4ff' : '#8892b0',
-                cursor: 'pointer',
-                borderRadius: 10,
-                fontWeight: 600,
-                fontSize: 'clamp(0.85rem, 2vw, 1rem)',
-                transition: 'all 0.3s ease',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                fontFamily: 'var(--font-sans)',
-                letterSpacing: 0.5,
-              }}
-            >
-              <Trophy size={16} /> Competition Results
-            </button>
-          </div>
-        </div>
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Navbar />
+
+      {/* Hero */}
+      <section className="pt-32 pb-16 text-center px-4 bg-gradient-to-b from-primary-50/60 to-transparent">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+          <span className="section-tag">Gallery &amp; Results</span>
+          <h1 className="font-sora font-black text-4xl md:text-5xl text-gray-900 mt-4 mb-4 leading-tight">
+            Event <span className="text-gradient">Highlights &amp; Results</span>
+          </h1>
+          <p className="text-gray-500 text-lg max-w-xl mx-auto leading-relaxed">
+            Relive the best moments from past VSpark events — the energy, the competition, the winners.
+          </p>
+        </motion.div>
       </section>
 
-        {/* HIGHLIGHTS TAB */}
+      {/* Tabs */}
+      <div className="max-w-6xl mx-auto px-4 mb-8">
+        <div className="flex gap-2 justify-center flex-wrap">
+          {tabs.map(({ id, label, icon: Icon }) => (
+            <button key={id} onClick={() => setActiveTab(id)}
+              className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-sora font-bold text-sm transition-all duration-300 ${
+                activeTab === id
+                  ? 'bg-primary-600 text-white shadow-lg shadow-primary-200'
+                  : 'bg-white text-gray-500 border border-gray-200 hover:border-primary-300 hover:text-primary-600'
+              }`}
+            >
+              <Icon size={16} /> {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── HIGHLIGHTS TAB ── */}
+      <AnimatePresence mode="wait">
         {activeTab === 'highlights' && (
-          <section style={{ padding: '0 0 100px' }}>
-            <div className="container">
-              {loading ? (
-                <div style={{ textAlign: 'center', padding: 80 }}>
-                  <div style={{ width: 48, height: 48, border: '3px solid var(--border)', borderTop: '3px solid var(--primary)', borderRadius: '50%', animation: 'rotate 0.8s linear infinite', margin: '0 auto' }} />
-                </div>
-              ) : highlights.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: 80, color: 'var(--text-muted)' }}>
-                  <ImageIcon size={48} style={{ margin: '0 auto 16px', opacity: 0.4 }} />
-                  <p>No highlights yet. Come back after the event!</p>
-                </div>
-              ) : (
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                  gap: '20px',
-                  maxWidth: '1000px',
-                  margin: '0 auto',
-                }}>
-                  {highlights.map((h) => (
-                    <div key={h.id}
-                      onClick={() => setSelected(h)}
-                      style={{
-                        position: 'relative', overflow: 'hidden',
-                        cursor: 'pointer',
-                        aspectRatio: '4/3',
-                        borderRadius: '12px',
-                        border: '1px solid var(--border)',
-                        transition: 'all 0.3s ease',
-                      }}
-                      onMouseEnter={e => {
-                        e.currentTarget.style.borderColor = 'rgba(0,212,255,0.4)'
-                        e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,212,255,0.15)'
-                        e.currentTarget.style.transform = 'scale(1.02)'
-                      }}
-                      onMouseLeave={e => {
-                        e.currentTarget.style.borderColor = 'var(--border)'
-                        e.currentTarget.style.boxShadow = 'none'
-                        e.currentTarget.style.transform = 'scale(1)'
-                      }}
-                    >
-                      <img src={h.image_url} alt="Event highlight" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s ease' }}
-                        onMouseEnter={e => e.target.style.transform = 'scale(1.08)'}
-                        onMouseLeave={e => e.target.style.transform = 'scale(1)'}
-                      />
-                      {/* Corner accents */}
-                      <div style={{ position: 'absolute', top: 0, left: 0, width: 20, height: 20, borderTop: '2px solid #00d4ff', borderLeft: '2px solid #00d4ff' }} />
-                      <div style={{ position: 'absolute', bottom: 0, right: 0, width: 20, height: 20, borderBottom: '2px solid #00d4ff', borderRight: '2px solid #00d4ff' }} />
+          <motion.section key="highlights" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.35 }}
+            className="max-w-6xl mx-auto px-4 pb-24">
+            {loading ? (
+              <div className="flex justify-center py-24">
+                <div className="w-12 h-12 border-4 border-primary-100 border-t-primary-500 rounded-full animate-spin" />
+              </div>
+            ) : highlights.length === 0 ? (
+              <div className="text-center py-24">
+                <ImageIcon size={48} className="text-gray-200 mx-auto mb-4" />
+                <p className="text-gray-400 font-medium">No highlights yet. Come back after the event!</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                {highlights.map((h, i) => (
+                  <motion.div key={h.id}
+                    initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.04 }}
+                    onClick={() => setSelected(h)}
+                    className="group relative aspect-[4/3] rounded-2xl overflow-hidden border border-gray-100 shadow-sm cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                  >
+                    <img src={h.image_url} alt={h.description || 'Event highlight'}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    {/* Hover overlay */}
+                    <div className="absolute inset-0 bg-gray-900/0 group-hover:bg-gray-900/40 transition-all duration-300 flex items-center justify-center">
+                      <ZoomIn size={28} className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </section>
+                    {h.description && (
+                      <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <p className="text-white text-xs font-medium truncate">{h.description}</p>
+                      </div>
+                    )}
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </motion.section>
         )}
 
-        {/* RESULTS TAB */}
+        {/* ── RESULTS TAB ── */}
         {activeTab === 'results' && (
-          <section style={{ padding: '0 0 100px' }}>
-            <div className="container">
-              {loading ? (
-                <div style={{ textAlign: 'center', padding: 80 }}>
-                  <div style={{ width: 48, height: 48, border: '3px solid var(--border)', borderTop: '3px solid var(--primary)', borderRadius: '50%', animation: 'rotate 0.8s linear infinite', margin: '0 auto' }} />
-                </div>
-              ) : results.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: 80, color: 'var(--text-muted)' }}>
-                  <Trophy size={48} style={{ margin: '0 auto 16px', opacity: 0.4 }} />
-                  <p>No results announced yet. Check back soon!</p>
-                </div>
-              ) : (
-                <div style={{ display: 'grid', gap: '24px' }}>
-                  {results.map((result) => {
-                    const comp = competitions[result.competition_id]
-                    return (
-                      <div key={result.id} style={{
-                        padding: '20px',
-                        background: 'linear-gradient(135deg, rgba(0,212,255,0.05) 0%, rgba(255,107,0,0.03) 100%)',
-                        border: '2px solid rgba(0,212,255,0.25)',
-                        borderRadius: '12px',
-                        borderLeft: '5px solid #00d4ff',
-                        transition: 'all 0.3s ease',
-                      }}
-                      onMouseEnter={e => {
-                        e.currentTarget.style.borderColor = 'rgba(0,212,255,0.4)'
-                        e.currentTarget.style.boxShadow = '0 8px 32px rgba(0,212,255,0.1)'
-                      }}
-                      onMouseLeave={e => {
-                        e.currentTarget.style.borderColor = 'rgba(0,212,255,0.25)'
-                        e.currentTarget.style.boxShadow = 'none'
-                      }}
-                      >
-                        {/* Header */}
-                        <div style={{ marginBottom: '16px' }}>
-                          <h2 style={{
-                            fontSize: '1.4rem',
-                            fontWeight: 700,
-                            color: '#00d4ff',
-                            marginBottom: 8,
-                            margin: '0 0 8px 0',
-                            fontFamily: 'Bebas Neue',
-                            letterSpacing: 1,
-                          }}>
+          <motion.section key="results" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.35 }}
+            className="max-w-5xl mx-auto px-4 pb-24">
+            {loading ? (
+              <div className="flex justify-center py-24">
+                <div className="w-12 h-12 border-4 border-primary-100 border-t-primary-500 rounded-full animate-spin" />
+              </div>
+            ) : results.length === 0 ? (
+              <div className="text-center py-24">
+                <Trophy size={48} className="text-gray-200 mx-auto mb-4" />
+                <p className="text-gray-400 font-medium">No results announced yet. Check back soon!</p>
+              </div>
+            ) : (
+              <div className="space-y-8">
+                {results.map((result, i) => {
+                  const comp = competitions[result.competition_id]
+                  return (
+                    <motion.div key={result.id}
+                      initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
+                      className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden"
+                    >
+                      {/* Card header */}
+                      <div className="px-7 py-5 border-b border-gray-100 flex items-center justify-between flex-wrap gap-3"
+                        style={{ borderLeftWidth: 4, borderLeftColor: comp?.color || '#4F46E5', borderLeftStyle: 'solid' }}>
+                        <div>
+                          <h2 className="font-sora font-black text-xl text-gray-900">
                             {comp?.title || `Competition #${result.competition_id}`}
                           </h2>
-                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', color: '#8892b0', fontSize: '0.85rem' }}>
+                          <div className="flex gap-4 mt-1 text-sm text-gray-400 flex-wrap">
                             {result.announced_at && (
                               <span>🏆 {new Date(result.announced_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
                             )}
-                            {result.cash_prize && (
-                              <span>💰 {result.cash_prize}</span>
-                            )}
+                            {result.cash_prize && <span className="font-semibold text-emerald-600">💰 {result.cash_prize}</span>}
                           </div>
                         </div>
+                        <Award size={28} className="text-gray-200" />
+                      </div>
 
-                        {/* Winners Grid - 2 columns or flex */}
-                        <div style={{
-                          display: 'grid',
-                          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-                          gap: '12px',
-                          marginBottom: '16px',
-                        }}>
-                          {/* 1st Place */}
-                          <div style={{
-                            padding: '12px',
-                            background: 'linear-gradient(135deg, rgba(255,215,0,0.12) 0%, rgba(255,215,0,0.06) 100%)',
-                            border: '2px solid rgba(255,215,0,0.35)',
-                            borderRadius: '8px',
-                            textAlign: 'center',
-                            transition: 'all 0.3s ease',
-                          }}
-                          onMouseEnter={e => {
-                            e.currentTarget.style.transform = 'translateY(-2px)'
-                            e.currentTarget.style.boxShadow = '0 6px 16px rgba(255,215,0,0.15)'
-                          }}
-                          onMouseLeave={e => {
-                            e.currentTarget.style.transform = 'translateY(0)'
-                            e.currentTarget.style.boxShadow = 'none'
-                          }}
-                          >
-                            <div style={{ fontSize: '2rem', marginBottom: 6 }}>🥇</div>
-                            <div style={{ color: '#ffd700', fontWeight: 700, fontSize: '0.7rem', letterSpacing: 1, marginBottom: 6, textTransform: 'uppercase' }}>
-                              1ST
-                            </div>
-                            <p style={{
-                              fontSize: '0.85rem',
-                              fontWeight: 600,
-                              color: '#e8eaf6',
-                              marginBottom: 4,
-                              margin: '0 0 4px 0',
-                            }}>
-                              {result.first_place}
-                            </p>
-                            {result.first_university && (
-                              <p style={{ fontSize: '0.7rem', color: '#8892b0', margin: '0 0 3px 0', fontFamily: 'JetBrains Mono' }}>
-                                {result.first_university}
-                              </p>
-                            )}
-                            {result.first_place_info && (
-                              <p style={{ fontSize: '0.65rem', color: '#8892b0', margin: 0 }}>
-                                {result.first_place_info}
-                              </p>
-                            )}
-                          </div>
-
-                          {/* 2nd Place */}
-                          {result.second_place && (
-                            <div style={{
-                              padding: '12px',
-                              background: 'linear-gradient(135deg, rgba(192,192,192,0.1) 0%, rgba(192,192,192,0.05) 100%)',
-                              border: '2px solid rgba(192,192,192,0.25)',
-                              borderRadius: '8px',
-                              textAlign: 'center',
-                              transition: 'all 0.3s ease',
-                            }}
-                            onMouseEnter={e => {
-                              e.currentTarget.style.transform = 'translateY(-2px)'
-                              e.currentTarget.style.boxShadow = '0 6px 16px rgba(192,192,192,0.1)'
-                            }}
-                            onMouseLeave={e => {
-                              e.currentTarget.style.transform = 'translateY(0)'
-                              e.currentTarget.style.boxShadow = 'none'
-                            }}
-                            >
-                              <div style={{ fontSize: '2rem', marginBottom: 6 }}>🥈</div>
-                              <div style={{ color: '#c0c0c0', fontWeight: 700, fontSize: '0.7rem', letterSpacing: 1, marginBottom: 6, textTransform: 'uppercase' }}>
-                                2ND
+                      <div className="p-7">
+                        {/* Podium */}
+                        <div className="grid sm:grid-cols-3 gap-4 mb-6">
+                          {PLACE_CONFIG.map(({ key, emoji, label, bg, text, ring }) => {
+                            const name = result[`${key}_place`]
+                            const uni  = result[`${key}_university`]
+                            const info = result[`${key}_place_info`]
+                            if (!name) return null
+                            return (
+                              <div key={key} className={`${bg} rounded-2xl p-5 text-center border-2 ${ring.replace('ring-', 'border-')} shadow-sm`}>
+                                <div className="text-4xl mb-2">{emoji}</div>
+                                <p className={`text-[10px] font-black uppercase tracking-widest ${text} mb-3`}>{label}</p>
+                                <p className="font-sora font-bold text-gray-900 text-base leading-tight">{name}</p>
+                                {uni && <p className="text-gray-400 text-xs mt-1">{uni}</p>}
+                                {info && <p className="text-gray-400 text-xs mt-0.5 italic">{info}</p>}
                               </div>
-                              <p style={{
-                                fontSize: '0.85rem',
-                                fontWeight: 600,
-                                color: '#e8eaf6',
-                                marginBottom: 4,
-                                margin: '0 0 4px 0',
-                              }}>
-                                {result.second_place}
-                              </p>
-                              {result.second_university && (
-                                <p style={{ fontSize: '0.7rem', color: '#8892b0', margin: '0 0 3px 0', fontFamily: 'JetBrains Mono' }}>
-                                  {result.second_university}
-                                </p>
-                              )}
-                              {result.second_place_info && (
-                                <p style={{ fontSize: '0.65rem', color: '#8892b0', margin: 0 }}>
-                                  {result.second_place_info}
-                                </p>
-                              )}
-                            </div>
-                          )}
-
-                          {/* 3rd Place */}
-                          {result.third_place && (
-                            <div style={{
-                              padding: '12px',
-                              background: 'linear-gradient(135deg, rgba(205,127,50,0.1) 0%, rgba(205,127,50,0.05) 100%)',
-                              border: '2px solid rgba(205,127,50,0.25)',
-                              borderRadius: '8px',
-                              textAlign: 'center',
-                              transition: 'all 0.3s ease',
-                            }}
-                            onMouseEnter={e => {
-                              e.currentTarget.style.transform = 'translateY(-2px)'
-                              e.currentTarget.style.boxShadow = '0 6px 16px rgba(205,127,50,0.1)'
-                            }}
-                            onMouseLeave={e => {
-                              e.currentTarget.style.transform = 'translateY(0)'
-                              e.currentTarget.style.boxShadow = 'none'
-                            }}
-                            >
-                              <div style={{ fontSize: '2rem', marginBottom: 6 }}>🥉</div>
-                              <div style={{ color: '#cd7f32', fontWeight: 700, fontSize: '0.7rem', letterSpacing: 1, marginBottom: 6, textTransform: 'uppercase' }}>
-                                3RD
-                              </div>
-                              <p style={{
-                                fontSize: '0.85rem',
-                                fontWeight: 600,
-                                color: '#e8eaf6',
-                                marginBottom: 4,
-                                margin: '0 0 4px 0',
-                              }}>
-                                {result.third_place}
-                              </p>
-                              {result.third_university && (
-                                <p style={{ fontSize: '0.7rem', color: '#8892b0', margin: '0 0 3px 0', fontFamily: 'JetBrains Mono' }}>
-                                  {result.third_university}
-                                </p>
-                              )}
-                              {result.third_place_info && (
-                                <p style={{ fontSize: '0.65rem', color: '#8892b0', margin: 0 }}>
-                                  {result.third_place_info}
-                                </p>
-                              )}
-                            </div>
-                          )}
+                            )
+                          })}
                         </div>
 
-                        {/* Result Image */}
+                        {/* Result image */}
                         {result.result_image_url && (
-                          <div style={{ marginBottom: '12px' }}>
-                            <img
-                              src={result.result_image_url}
-                              alt="Result"
-                              style={{
-                                width: '100%',
-                                maxHeight: '280px',
-                                objectFit: 'cover',
-                                borderRadius: '8px',
-                                border: '1px solid rgba(0,212,255,0.25)',
-                                cursor: 'pointer',
-                                transition: 'all 0.3s ease',
-                              }}
-                              onClick={() => setSelected(result)}
-                              onMouseEnter={e => {
-                                e.currentTarget.style.transform = 'scale(1.02)'
-                                e.currentTarget.style.boxShadow = '0 6px 16px rgba(0,212,255,0.15)'
-                              }}
-                              onMouseLeave={e => {
-                                e.currentTarget.style.transform = 'scale(1)'
-                                e.currentTarget.style.boxShadow = 'none'
-                              }}
-                            />
+                          <div className="mb-5 rounded-2xl overflow-hidden border border-gray-100 cursor-pointer"
+                            onClick={() => setSelected(result)}>
+                            <img src={result.result_image_url} alt="Result"
+                              className="w-full max-h-72 object-cover hover:scale-102 transition-transform duration-300" />
                           </div>
                         )}
 
                         {/* Description */}
                         {result.result_description && (
-                          <div style={{
-                            padding: '10px',
-                            background: 'rgba(0,212,255,0.08)',
-                            border: '1px solid rgba(0,212,255,0.2)',
-                            borderRadius: '6px',
-                            lineHeight: 1.5,
-                          }}>
-                            <p style={{ color: '#e8eaf6', fontSize: '0.8rem', whiteSpace: 'pre-wrap', margin: 0 }}>
-                              {result.result_description}
-                            </p>
+                          <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100">
+                            <p className="text-gray-600 text-sm leading-relaxed whitespace-pre-wrap">{result.result_description}</p>
                           </div>
                         )}
                       </div>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
-          </section>
-        )}
-      </div>
-
-      {selected && (
-        <div className="modal-overlay" onClick={() => setSelected(null)}>
-          <div onClick={e => e.stopPropagation()} style={{ position: 'relative', maxWidth: '90vw', maxHeight: '90vh' }}>
-            <img src={selected.image_url || selected.result_image_url} alt={selected.description} style={{ maxWidth: '90vw', maxHeight: '80vh', objectFit: 'contain', borderRadius: 12 }} />
-            {(selected.description || selected.result_description) && (
-              <div style={{ textAlign: 'center', marginTop: 16, color: 'var(--text-muted)' }}>
-                {selected.description || selected.result_description}
+                    </motion.div>
+                  )
+                })}
               </div>
             )}
-            <button onClick={() => setSelected(null)} style={{ position: 'absolute', top: -16, right: -16, width: 36, height: 36, borderRadius: '50%', background: 'var(--surface)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text)' }}>
-              <X size={16} />
-            </button>
-          </div>
-        </div>
-      )}
+          </motion.section>
+        )}
+      </AnimatePresence>
+
+      {/* ── Immersive Split-View Lightbox ── */}
+      <AnimatePresence>
+        {selected && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-gray-900/98 backdrop-blur-2xl z-[9999] flex flex-col lg:flex-row overflow-hidden"
+          >
+            {/* ── Left: Image Viewer ── */}
+            <div className="flex-1 relative flex items-center justify-center bg-black/20 overflow-hidden">
+               {/* Image Container with Inner Zoom */}
+               <div 
+                 className={`relative w-full h-full flex items-center justify-center transition-all duration-500 ${isZoomed ? 'cursor-zoom-out' : 'cursor-zoom-in'}`}
+                 onClick={() => setIsZoomed(!isZoomed)}
+               >
+                  <motion.img 
+                    src={selected.image_url || selected.result_image_url} 
+                    alt="Gallery View"
+                    animate={{ 
+                      scale: isZoomed ? 1.8 : 1,
+                      x: isZoomed ? 0 : 0, // In a real pan we'd add drag, but scale is what they asked for
+                      y: isZoomed ? 0 : 0 
+                    }}
+                    transition={{ type: 'spring', damping: 25, stiffness: 120 }}
+                    className="max-w-full max-h-full object-contain pointer-events-none"
+                  />
+               </div>
+
+               {/* Zoom Indicator/Toggle */}
+               <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-3 z-50">
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); setIsZoomed(!isZoomed); }}
+                    className="flex items-center gap-2 px-6 py-3 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white backdrop-blur-md transition-all shadow-2xl"
+                  >
+                    {isZoomed ? <ZoomOut size={18} /> : <ZoomIn size={18} />}
+                    <span className="text-xs font-bold uppercase tracking-widest">{isZoomed ? 'Fit Screen' : 'Zoom In'}</span>
+                  </button>
+               </div>
+            </div>
+
+            {/* ── Right: Info Sidebar ── */}
+            <motion.div 
+               initial={{ x: 100, opacity: 0 }}
+               animate={{ x: 0, opacity: 1 }}
+               className="w-full lg:w-[450px] bg-white h-full flex flex-col shadow-[-20px_0_50px_rgba(0,0,0,0.2)]"
+            >
+               {/* Sidebar Header */}
+               <div className="p-8 border-b border-gray-100 flex items-center justify-between">
+                  <button 
+                    onClick={() => setSelected(null)}
+                    className="group flex items-center gap-3 text-gray-400 hover:text-primary-600 transition-colors"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-primary-50 transition-colors">
+                       <X size={20} />
+                    </div>
+                    <span className="font-sora font-bold text-sm">Back to Gallery</span>
+                  </button>
+                  
+                  <a 
+                    href={selected.image_url || selected.result_image_url} 
+                    download 
+                    target="_blank" 
+                    rel="noreferrer"
+                    className="w-10 h-10 rounded-xl border border-gray-100 flex items-center justify-center text-gray-400 hover:text-primary-600 hover:bg-primary-50 transition-colors"
+                  >
+                     <ImageIcon size={18} />
+                  </a>
+               </div>
+
+               {/* Sidebar Content */}
+               <div className="flex-1 overflow-y-auto p-10 custom-scrollbar">
+                  <span className="badge-premium mb-6">Gallery Detail</span>
+                  <h2 className="font-sora font-black text-3xl text-gray-900 mb-8 leading-tight">
+                    {activeTab === 'results' ? 'Competition Winning Moment' : 'Event Highlight'}
+                  </h2>
+
+                  <div className="space-y-8">
+                     <div>
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-4">Description</p>
+                        <p className="text-gray-600 text-lg leading-relaxed">
+                           {selected.description || selected.result_description || "An incredible moment captured at VSpark 2025, showcasing the talent and innovation of Pakistan's youth."}
+                        </p>
+                     </div>
+
+                     {activeTab === 'results' && (
+                        <div className="pt-8 border-t border-gray-100">
+                           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-6">Related Competition</p>
+                           <div className="bg-primary-50 rounded-2xl p-6 border border-primary-100">
+                             <Trophy className="text-primary-500 mb-3" size={24} />
+                             <p className="font-sora font-bold text-primary-700">Check full standings in the Results tab for more details.</p>
+                           </div>
+                        </div>
+                     )}
+                     
+                     <div className="pt-8 border-t border-gray-100">
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-4">Location</p>
+                        <p className="text-gray-500 text-sm font-medium">COMSATS University Islamabad, Vehari Campus</p>
+                     </div>
+                  </div>
+               </div>
+
+               {/* Sidebar Footer */}
+               <div className="p-8 border-t border-gray-100 bg-gray-50/50">
+                  <button 
+                    onClick={() => setSelected(null)}
+                    className="btn-primary w-full justify-center"
+                  >
+                    Back to Highlights
+                  </button>
+               </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <Footer />
     </div>

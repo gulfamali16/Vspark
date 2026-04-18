@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Calendar, CalendarDays, Users,
   FileText, Image, LogOut, ChevronRight,
-  Swords, Settings, GraduationCap, UserCog, Shield, Trophy
+  Swords, Settings, GraduationCap, UserCog, Shield, Trophy, Building
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
@@ -15,6 +15,7 @@ const ALL_ITEMS = [
   { to: '/admin/schedule', icon: Calendar, label: 'Schedule', perm: 'schedule' },
   { to: '/admin/events', icon: CalendarDays, label: 'Events', perm: 'events' },
   { to: '/admin/department', icon: GraduationCap, label: 'CS Department', perm: 'department' },
+  { to: '/admin/universities', icon: Building, label: 'Universities', perm: 'universities' },
   { to: '/admin/blogs', icon: FileText, label: 'Blogs', perm: 'blogs' },
   { to: '/admin/highlights', icon: Image, label: 'Highlights', perm: 'highlights' },
   { to: '/admin/assistants', icon: UserCog, label: 'Assistants', perm: 'assistants' },
@@ -54,61 +55,32 @@ export default function AdminSidebar() {
   const isAdmin = role === 'admin';
 
   return (
-    <aside style={{
-      width: 240, minHeight: '100vh',
-      background: '#02040c',
-      borderRight: '1px solid rgba(0,212,255,0.1)',
-      display: 'flex', flexDirection: 'column',
-      position: 'fixed', top: 0, left: 0, zIndex: 100,
-    }}>
+    <aside className="fixed top-0 left-0 z-50 flex flex-col w-64 h-screen bg-white border-r border-gray-200">
       {/* ── Logo — clicking goes to dashboard ── */}
-      <Link to="/admin" style={{
-        padding: '1.1rem 1.5rem',
-        borderBottom: '1px solid rgba(0,212,255,0.1)',
-        textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 10,
-        transition: 'background 0.2s',
-      }}
-        onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,212,255,0.04)'}
-        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+      <Link
+        to="/admin"
+        className="flex items-center gap-3 px-6 py-5 border-b border-gray-100 hover:bg-gray-50 transition-colors"
       >
-        <img
-          src="/images/vspark.png"
-          alt="VSpark"
-          style={{ height: 52, width: 'auto', objectFit: 'contain' }}
-          onError={e => {
-            e.target.style.display = 'none';
-            e.target.nextSibling.style.display = 'block';
-          }}
-        />
-        {/* Text fallback */}
-        <span style={{ display: 'none', fontFamily: 'Bebas Neue,cursive', fontSize: '1.3rem', letterSpacing: 3, color: '#e8eaf6' }}>
-          V<span style={{ color: '#00d4ff' }}>SPARK</span>
-        </span>
-        <div style={{ marginLeft: 'auto' }}>
-          <div style={{ fontFamily: 'JetBrains Mono,monospace', fontSize: '0.55rem', color: '#8892b0', letterSpacing: 2 }}>
-            {isAdmin ? 'ADMIN' : 'ASSISTANT'}
+        <img src="/images/vspark.png" alt="VSpark" className="h-20 md:h-20 w-auto object-contain drop-shadow-sm" />
+
+        <div className="ml-auto">
+          <div className="text-[10px] font-bold tracking-widest text-gray-400">
+            {isAdmin ? 'ADMIN' : 'STAFF'}
           </div>
         </div>
       </Link>
 
       {/* ── User info ── */}
-      <div style={{
-        margin: '0.6rem 0.75rem',
-        padding: '0.65rem 1rem',
-        background: isAdmin ? 'rgba(0,212,255,0.05)' : 'rgba(124,58,237,0.07)',
-        border: `1px solid ${isAdmin ? 'rgba(0,212,255,0.15)' : 'rgba(124,58,237,0.2)'}`,
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{
-            width: 26, height: 26, borderRadius: '50%',
-            background: isAdmin ? 'rgba(0,212,255,0.15)' : 'rgba(124,58,237,0.15)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-          }}>
-            {isAdmin ? <Shield size={12} style={{ color: '#00d4ff' }} /> : <UserCog size={12} style={{ color: '#7c3aed' }} />}
+      <div className="p-4 mx-3 my-4 bg-gray-50 border border-gray-100 rounded-xl">
+        <div className="flex items-center gap-3">
+          <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${isAdmin ? 'bg-primary-100 text-primary-600' : 'bg-indigo-100 text-indigo-600'
+            }`}>
+            {isAdmin ? <Shield size={18} /> : <UserCog size={18} />}
           </div>
-          <div style={{ overflow: 'hidden' }}>
-            <p style={{ color: '#e8eaf6', fontSize: '0.8rem', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{name}</p>
-            <p style={{ color: isAdmin ? '#00d4ff' : '#7c3aed', fontSize: '0.58rem', fontFamily: 'JetBrains Mono', letterSpacing: 1 }}>
+          <div className="overflow-hidden">
+            <p className="text-gray-900 text-sm font-bold truncate">{name}</p>
+            <p className={`text-[10px] uppercase tracking-wider font-bold ${isAdmin ? 'text-primary-500' : 'text-indigo-500'
+              }`}>
               {isAdmin ? 'SUPER ADMIN' : 'ASSISTANT'}
             </p>
           </div>
@@ -116,43 +88,40 @@ export default function AdminSidebar() {
       </div>
 
       {/* ── Nav items ── */}
-      <nav style={{ flex: 1, padding: '0.5rem 0.75rem', overflowY: 'auto' }}>
+      <nav className="flex-1 px-3 py-2 overflow-y-auto space-y-1 custom-scrollbar">
         {visibleItems.map(({ to, icon: Icon, label, badge }) => {
           const active = loc.pathname === to;
           return (
-            <Link key={to} to={to} style={{
-              display: 'flex', alignItems: 'center', gap: 10,
-              padding: '9px 13px', textDecoration: 'none', marginBottom: 2,
-              background: active ? 'rgba(0,212,255,0.1)' : 'transparent',
-              color: active ? '#00d4ff' : '#8892b0',
-              borderLeft: active ? '2px solid #00d4ff' : '2px solid transparent',
-              fontWeight: 600, fontSize: '0.86rem', transition: 'all 0.2s',
-            }}
-              onMouseEnter={e => { if (!active) { e.currentTarget.style.background = 'rgba(0,212,255,0.05)'; e.currentTarget.style.color = '#e8eaf6'; } }}
-              onMouseLeave={e => { if (!active) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#8892b0'; } }}
+            <Link
+              key={to}
+              to={to}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors relative ${active
+                  ? 'bg-primary-50 text-primary-700'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                }`}
             >
-              <Icon size={15} />
+              <Icon size={18} className={active ? 'text-primary-600' : 'text-gray-400'} />
               {label}
-              {badge && <span style={{ marginLeft: 'auto', width: 7, height: 7, borderRadius: '50%', background: '#ff6b00', flexShrink: 0 }} />}
-              {active && !badge && <ChevronRight size={12} style={{ marginLeft: 'auto' }} />}
+
+              {badge && (
+                <span className="ml-auto w-2 h-2 rounded-full bg-red-500 flex-shrink-0" />
+              )}
+
+              {active && !badge && (
+                <ChevronRight size={16} className="ml-auto text-primary-400" />
+              )}
             </Link>
           );
         })}
       </nav>
 
       {/* ── Logout ── */}
-      <div style={{ padding: '0.75rem', borderTop: '1px solid rgba(0,212,255,0.1)' }}>
-        <button onClick={logout} style={{
-          width: '100%', padding: '9px 13px',
-          background: 'transparent', border: '1px solid rgba(255,61,119,0.3)',
-          color: '#ff3d77', cursor: 'pointer',
-          display: 'flex', alignItems: 'center', gap: 10,
-          fontFamily: 'Rajdhani,sans-serif', fontWeight: 600, fontSize: '0.86rem', transition: 'all 0.2s',
-        }}
-          onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,61,119,0.08)'}
-          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+      <div className="p-4 border-t border-gray-100">
+        <button
+          onClick={logout}
+          className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-lg text-sm font-bold text-red-600 bg-red-50 hover:bg-red-100 transition-colors"
         >
-          <LogOut size={14} /> Sign Out
+          <LogOut size={16} /> Sign Out
         </button>
       </div>
     </aside>

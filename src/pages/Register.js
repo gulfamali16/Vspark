@@ -1,140 +1,87 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams, Link } from 'react-router-dom';
 import {
   CheckCircle, CreditCard, Info, Clock,
-  ChevronDown, X, Plus, Minus
+  ChevronDown, Building, Layout, User,
+  Phone, Mail, GraduationCap, Link as LinkIcon,
+  ArrowRight, ShieldCheck, Zap, UserCheck
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 
 // ── Constants ────────────────────────────────────────────────
-const INSTITUTES = [
-  'COMSATS University Islamabad',
-  'University of the Punjab',
-  'NUST',
-  'FAST-NUCES',
-  'UET Lahore',
-  'UET Peshawar',
-  'Air University',
-  'Bahria University',
-  'IBA Karachi',
-  'LUMS',
-  'Government College University',
-  'University of Karachi',
-  'Quaid-i-Azam University',
-  'Other University',
-  'School / College (Pre-University)',
-  'Other',
-];
-
 const DEPARTMENTS = [
-  'Computer Science',
-  'Software Engineering',
-  'Information Technology',
-  'Artificial Intelligence',
-  'Electrical Engineering',
-  'Business Administration',
-  'Pre-Engineering',
-  'Pre-Medical',
-  'ICS',
-  'Other',
+  'Computer Science', 'Software Engineering', 'Information Technology', 'Artificial Intelligence',
+  'Electrical Engineering', 'Business Administration', 'Pre-Engineering', 'Pre-Medical', 'ICS', 'Other',
 ];
 
-// ── Helpers ──────────────────────────────────────────────────
-
-// Trim and collapse extra spaces
 const clean = (val) => (val || '').replace(/\s+/g, ' ').trim();
-
-// Clean phone — keep only digits, +, -, spaces
 const cleanPhone = (val) => val.replace(/[^\d\s+\-()]/g, '').replace(/\s+/g, ' ').trim();
-
-// Validate email
 const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-// Label style
-const labelSt = {
-  display: 'block',
-  fontFamily: 'Bebas Neue, cursive',
-  letterSpacing: 1.5,
-  color: '#8892b0',
-  marginBottom: 5,
-  fontSize: '0.82rem',
-};
-
-// Input style factory
-const inputSt = (hasError) => ({
-  width: '100%',
-  padding: '12px 16px',
-  background: hasError ? 'rgba(255,61,119,0.04)' : 'rgba(255,255,255,0.03)',
-  border: `1px solid ${hasError ? 'rgba(255,61,119,0.5)' : 'rgba(0,212,255,0.2)'}`,
-  color: '#e8eaf6',
-  fontFamily: 'Rajdhani, sans-serif',
-  fontSize: '1rem',
-  fontWeight: 500,
-  outline: 'none',
-  transition: 'border-color 0.2s',
-});
-
-// Field wrapper
-function Field({ label, error, children, required }) {
+function Field({ label, error, children, required, icon: Icon }) {
   return (
-    <div style={{ marginBottom: '1.1rem' }}>
-      <label style={labelSt}>
-        {label} {required && <span style={{ color: '#ff3d77' }}>*</span>}
+    <div className="mb-6">
+      <label className="block font-sora font-bold text-[11px] text-gray-500 uppercase tracking-widest mb-2.5 ml-1">
+        {label} {required && <span className="text-primary-500">*</span>}
       </label>
-      {children}
+      <div className="relative group">
+        {Icon && (
+          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary-500 transition-colors">
+            <Icon size={18} />
+          </div>
+        )}
+        {children}
+      </div>
       {error && (
-        <p style={{ color: '#ff3d77', fontSize: '0.75rem', marginTop: 4, fontFamily: 'JetBrains Mono' }}>
-          ⚠ {error}
-        </p>
+        <motion.p initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} className="text-red-500 text-xs mt-2 font-semibold flex items-center gap-1.5 ml-1">
+           <Info size={12} /> {error}
+        </motion.p>
       )}
     </div>
   );
 }
 
-// ── Main Component ───────────────────────────────────────────
 export default function Register() {
   const [searchParams] = useSearchParams();
-  const preCompId   = searchParams.get('comp');      // competition ID from URL
-  const preCompName = searchParams.get('compName');  // competition name from URL
-
+  const preCompId = searchParams.get('comp');
   const [competitions, setCompetitions] = useState([]);
-  const [settings, setSettings]         = useState({});
-  const [submitting, setSubmitting]     = useState(false);
-  const [success, setSuccess]           = useState(false);
-
-  // Form state
+  const [universities, setUniversities] = useState([]);
+  const [selectedUni, setSelectedUni] = useState(null);
+  const [isOther, setIsOther] = useState(false);
+  const [settings, setSettings] = useState({});
+  const [submitting, setSubmitting] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [errors, setErrors] = useState({});
+  
   const [form, setForm] = useState({
-    student_name:    '',
-    email:           '',
-    phone:           '',
-    reg_number:      '',
-    institute:       '',
-    department:      '',
-    transaction_id:  '',
-    screenshot_url:  '',
+    student_name: '', email: '', phone: '', reg_number: '',
+    institute: '', department: '', transaction_id: '', screenshot_url: '',
+    manual_institute: '', focal_name: '', focal_contact: '', focal_email: '',
   });
 
-  // Selected competition IDs (array for multi-select)
-  const [selectedIds, setSelectedIds] = useState([]);
-
-  // Errors
-  const [errors, setErrors] = useState({});
-
-  // ── Load data ──────────────────────────────────────────────
   useEffect(() => {
+    // Fetch Competitions
     supabase.from('competitions').select('*').eq('is_active', true).order('title')
       .then(({ data }) => {
         setCompetitions(data || []);
-        // Pre-select from URL param
         if (preCompId) {
           const id = parseInt(preCompId);
           if (!isNaN(id)) setSelectedIds([id]);
         }
       });
+    
+    // Fetch Universities
+    supabase.from('universities').select('*').order('name')
+      .then(({ data }) => {
+        setUniversities(data || []);
+      });
 
+    // Fetch Site Settings
     supabase.from('site_settings').select('*').then(({ data }) => {
       if (data) {
         const s = {};
@@ -144,455 +91,343 @@ export default function Register() {
     });
   }, [preCompId]);
 
-  // ── Computed values ────────────────────────────────────────
   const selectedComps = competitions.filter(c => selectedIds.includes(c.id));
-  const totalFee      = selectedComps.reduce((sum, c) => sum + (c.fee || 0), 0);
+  const totalFee = selectedComps.reduce((sum, c) => sum + (c.fee || 0), 0);
 
-  // ── Toggle competition selection ───────────────────────────
   const toggleComp = (id) => {
-    setSelectedIds(prev =>
-      prev.includes(id)
-        ? prev.filter(x => x !== id)
-        : [...prev, id]
-    );
-    // Clear competition error on any change
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
     setErrors(e => ({ ...e, competitions: '' }));
   };
 
-  // ── Handle field change ────────────────────────────────────
   const handle = (field) => (e) => {
     let val = e.target.value;
-    // Auto-clean phone in real time
-    if (field === 'phone') val = cleanPhone(val);
-    setForm(prev => ({ ...prev, [field]: val }));
-    // Clear error on change
+    if (field === 'phone' || field === 'focal_contact') val = cleanPhone(val);
+    
+    if (field === 'institute') {
+      if (val === 'OTHER') {
+        setIsOther(true);
+        setSelectedUni(null);
+        setForm(prev => ({ ...prev, institute: 'Other', focal_name: '', focal_contact: '', focal_email: '' }));
+      } else {
+        const uni = universities.find(u => String(u.id) === val);
+        setIsOther(false);
+        setSelectedUni(uni);
+        setForm(prev => ({ 
+          ...prev, 
+          institute: uni.name, 
+          focal_name: uni.focal_person, 
+          focal_contact: uni.contact_number, 
+          focal_email: uni.email,
+          department: uni.department || prev.department
+        }));
+      }
+    } else {
+      setForm(prev => ({ ...prev, [field]: val }));
+    }
+    
     if (errors[field]) setErrors(e => ({ ...e, [field]: '' }));
   };
 
-  // ── Validate ───────────────────────────────────────────────
   const validate = () => {
     const errs = {};
+    const nameRegex = /^[A-Za-z\s.]+$/;
 
-    const name = clean(form.student_name);
-    if (!name)              errs.student_name = 'Full name is required';
-    else if (name.length < 3) errs.student_name = 'Name must be at least 3 characters';
+    if (!clean(form.student_name)) errs.student_name = 'Full name is required';
+    else if (!nameRegex.test(form.student_name)) errs.student_name = 'Name should only contain letters';
+    else if (clean(form.student_name).length < 3) errs.student_name = 'Name is too short';
 
-    const email = clean(form.email).toLowerCase();
-    if (!email)             errs.email = 'Email is required';
-    else if (!isValidEmail(email)) errs.email = 'Enter a valid email address';
+    if (!isValidEmail(clean(form.email))) errs.email = 'Enter a valid email address';
+    if (!clean(form.reg_number)) errs.reg_number = 'Registration number required';
+    if (!form.institute || form.institute === '') errs.institute = 'Institution is required';
+    if (!form.department) errs.department = 'Department is required';
+    
+    if (isOther) {
+      if (!clean(form.manual_institute)) errs.manual_institute = 'University name is required';
+      else if (!nameRegex.test(form.manual_institute)) errs.manual_institute = 'Use only letters for university name';
 
-    const regNo = clean(form.reg_number);
-    if (!regNo)             errs.reg_number = 'Registration / Roll number is required';
+      if (!clean(form.focal_name)) errs.focal_name = 'Focal person name required';
+      else if (!nameRegex.test(form.focal_name)) errs.focal_name = 'Focal name should only contain letters';
 
-    if (!form.institute)    errs.institute = 'Please select your institution';
-    if (!form.department)   errs.department = 'Please select your department';
+      if (!clean(form.focal_contact)) errs.focal_contact = 'Focal contact required';
+      if (!isValidEmail(clean(form.focal_email))) errs.focal_email = 'Valid focal email required';
+    }
 
-    if (selectedIds.length === 0)
-      errs.competitions = 'Please select at least one competition';
-
-    const txn = clean(form.transaction_id);
-    if (!txn)               errs.transaction_id = 'Transaction ID is required';
-    else if (txn.length < 4) errs.transaction_id = 'Enter a valid transaction ID';
-
+    if (selectedIds.length === 0) errs.competitions = 'Choose at least one competition';
+    if (!clean(form.transaction_id)) errs.transaction_id = 'Transaction ID is required';
     return errs;
   };
 
-  // ── Submit ─────────────────────────────────────────────────
   const submit = async (e) => {
     e.preventDefault();
-
     const errs = validate();
     if (Object.keys(errs).length > 0) {
       setErrors(errs);
-      toast.error('Please fix the highlighted fields');
-      // Scroll to first error
-      const firstErrKey = Object.keys(errs)[0];
-      const el = document.querySelector(`[data-field="${firstErrKey}"]`);
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      toast.error('Please fix the errors in the form');
+      window.scrollTo({ top: 300, behavior: 'smooth' }); // Scroll to form start
       return;
     }
-
     setSubmitting(true);
     try {
-      // Build competition statuses (all start as pending)
       const compStatuses = {};
       selectedIds.forEach(id => { compStatuses[String(id)] = 'pending'; });
-
+      
       const payload = {
-        student_name:          clean(form.student_name),
-        email:                 clean(form.email).toLowerCase(),
-        phone:                 clean(form.phone),
-        reg_number:            clean(form.reg_number),
-        institute:             form.institute,
-        department:            form.department,
-        transaction_id:        clean(form.transaction_id),
-        screenshot_url:        clean(form.screenshot_url),
-        // Multi-competition fields
-        competition_ids:       selectedIds,
-        competition_statuses:  compStatuses,
-        total_fee:             totalFee,
-        fee_amount:            totalFee,
-        // Keep first competition_id for backward compat
-        competition_id:        selectedIds[0] || null,
-        status:                'pending',
+        student_name: clean(form.student_name),
+        email: clean(form.email).toLowerCase(),
+        phone: clean(form.phone),
+        reg_number: clean(form.reg_number),
+        institute: isOther ? clean(form.manual_institute) : form.institute,
+        department: form.department,
+        transaction_id: clean(form.transaction_id),
+        screenshot_url: clean(form.screenshot_url),
+        competition_ids: selectedIds,
+        competition_statuses: compStatuses,
+        total_fee: totalFee,
+        fee_amount: totalFee,
+        competition_id: selectedIds[0] || null,
+        status: 'pending',
+        
+        // Focal person details
+        university_id: selectedUni ? selectedUni.id : null,
+        focal_person_name: clean(form.focal_name),
+        focal_person_contact: clean(form.focal_contact),
+        focal_person_email: clean(form.focal_email).toLowerCase(),
       };
-
+      
       const { error } = await supabase.from('registration_requests').insert([payload]);
       if (error) throw error;
-
       setSuccess(true);
-      toast.success('Registration request submitted!');
+      toast.success('Registration submitted!');
+      window.scrollTo(0, 0);
     } catch (err) {
-      toast.error('Submission failed: ' + (err.message || 'Please try again'));
+      toast.error(err.message || 'Submission failed');
     }
     setSubmitting(false);
   };
 
-  // ── Success screen ─────────────────────────────────────────
   if (success) return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
+    <div className="min-h-screen bg-gray-50 flex flex-col font-sora">
       <Navbar />
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8rem 2rem' }}>
-        <div className="glass" style={{ padding: '3.5rem', textAlign: 'center', maxWidth: 560, borderColor: 'rgba(0,255,136,0.3)' }}>
-          <CheckCircle size={64} style={{ color: '#00ff88', marginBottom: '1.5rem' }} />
-          <h2 style={{ fontFamily: 'Bebas Neue', fontSize: '2.2rem', letterSpacing: 3, color: '#e8eaf6', marginBottom: '1rem' }}>
-            Request Submitted!
-          </h2>
-          <p style={{ color: '#8892b0', lineHeight: 1.8, marginBottom: '1.5rem' }}>
-            Your registration request is under review. Once the admin verifies your payment, your login credentials will be sent to{' '}
-            <strong style={{ color: '#00d4ff' }}>{clean(form.email).toLowerCase()}</strong>.
+      <div className="flex-1 flex items-center justify-center p-6 pt-32 pb-24">
+        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-white p-10 md:p-14 rounded-3xl shadow-soft text-center max-w-xl border border-gray-100">
+          <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-8">
+            <CheckCircle className="w-10 h-10 text-emerald-500" />
+          </div>
+          <h2 className="font-black text-3xl text-gray-900 mb-4">Request Received!</h2>
+          <p className="text-gray-500 mb-8 leading-relaxed">
+            Your verification is pending. Credentials will be sent to <span className="text-primary-600 font-bold">{form.email}</span> within 24-48 hours.
           </p>
-
-          {/* Selected competitions summary */}
-          <div style={{ background: 'rgba(0,212,255,0.04)', border: '1px solid rgba(0,212,255,0.15)', padding: '1.25rem', marginBottom: '1.25rem', textAlign: 'left' }}>
-            <p style={{ color: '#00d4ff', fontFamily: 'Bebas Neue', letterSpacing: 2, fontSize: '0.9rem', marginBottom: 8 }}>
-              Competitions Registered:
-            </p>
-            {selectedComps.map(c => (
-              <div key={c.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px solid rgba(0,212,255,0.07)' }}>
-                <span style={{ color: '#e8eaf6', fontSize: '0.88rem' }}>{c.title}</span>
-                <span style={{ color: '#ffd700', fontFamily: 'JetBrains Mono', fontSize: '0.82rem' }}>PKR {c.fee?.toLocaleString()}</span>
-              </div>
-            ))}
-            <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: 8 }}>
-              <span style={{ color: '#8892b0', fontFamily: 'Bebas Neue', letterSpacing: 1 }}>Total Paid</span>
-              <span style={{ color: '#ffd700', fontFamily: 'Bebas Neue', fontSize: '1.2rem', letterSpacing: 1 }}>PKR {totalFee.toLocaleString()}</span>
+          <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100 text-left mb-8">
+            <h4 className="font-bold text-gray-900 text-sm mb-4 uppercase tracking-widest opacity-60">Registration Summary</h4>
+            <div className="space-y-3 mb-4">
+              {selectedComps.map(c => (
+                <div key={c.id} className="flex justify-between items-center text-sm">
+                  <span className="text-gray-600 truncate mr-4">{c.title}</span>
+                  <span className="font-bold text-gray-900">PKR {c.fee}</span>
+                </div>
+              ))}
+            </div>
+            <div className="border-t border-gray-200 pt-3 flex justify-between items-center">
+              <span className="font-bold text-gray-900">Total Amount</span>
+              <span className="font-black text-xl text-primary-600">PKR {totalFee}</span>
             </div>
           </div>
-
-          <div style={{ background: 'rgba(255,215,0,0.05)', border: '1px solid rgba(255,215,0,0.2)', padding: '1rem', marginBottom: '1.5rem' }}>
-            <p style={{ color: '#ffd700', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center' }}>
-              <Clock size={16} /> Approval usually takes 24–48 hours
-            </p>
-          </div>
-        </div>
+          <Link to="/" className="btn-primary w-full justify-center py-4 text-base font-bold">Return Home</Link>
+        </motion.div>
       </div>
       <Footer />
     </div>
   );
 
-  // ── Main Form ──────────────────────────────────────────────
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+    <div className="min-h-screen bg-gray-50 font-sora">
       <Navbar />
-
-      <section style={{ padding: '10rem 2rem 3rem', textAlign: 'center', background: 'radial-gradient(ellipse at top,rgba(0,212,255,0.08) 0%,transparent 60%)' }}>
-        <span className="tag" style={{ display: 'inline-block', marginBottom: '1rem' }}>Join VSpark</span>
-        <h1 className="section-title" style={{ display: 'block', marginBottom: '0.5rem' }}>Register</h1>
-        <p style={{ color: '#8892b0', maxWidth: 540, margin: '0 auto', lineHeight: 1.7 }}>
-          Fill in your details and select your competitions. You can register for multiple events in a single request.
-        </p>
+      
+      {/* Hero Header */}
+      <section className="pt-40 pb-16 px-6 text-center bg-gradient-to-b from-primary-50/60 to-transparent">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+          <span className="section-tag">National Innovation Event</span>
+          <h1 className="font-black text-4xl md:text-5xl lg:text-6xl text-gray-900 mt-4 mb-6">
+            Register for <span className="text-gradient">VSpark</span>
+          </h1>
+          <p className="text-gray-500 text-lg max-w-2xl mx-auto leading-relaxed font-medium">
+            Join 500+ participants from across the country. Select your university and competitions to get started.
+          </p>
+        </motion.div>
       </section>
 
-      <section style={{ padding: '2rem 2rem 6rem' }}>
-        <div style={{ maxWidth: 700, margin: '0 auto' }}>
+      <section className="px-6 pb-24">
+        <form onSubmit={submit} className="max-w-4xl mx-auto grid lg:grid-cols-5 gap-8">
+          
+          {/* Main Form Area */}
+          <div className="lg:col-span-3 space-y-8">
+            <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
+              <h3 className="font-bold text-xl text-gray-900 mb-8 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-primary-100 text-primary-600 flex items-center justify-center"><User size={18}/></div>
+                Profile Details
+              </h3>
+              
+              <Field label="Full Name" required error={errors.student_name} icon={User}>
+                <input value={form.student_name} onChange={handle('student_name')} placeholder="Ali Khan" className="input-premium pl-12" />
+              </Field>
 
-          {/* ── Payment Info ── */}
-          {settings.payment_account && (
-            <div style={{ marginBottom: '2rem', padding: '1.5rem 2rem', background: 'rgba(255,215,0,0.04)', border: '1px solid rgba(255,215,0,0.25)', borderLeft: '4px solid #ffd700' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: '0.75rem' }}>
-                <CreditCard size={18} style={{ color: '#ffd700' }} />
-                <h3 style={{ fontFamily: 'Bebas Neue', letterSpacing: 2, color: '#ffd700', fontSize: '1.1rem' }}>Payment Instructions</h3>
-              </div>
-              <p style={{ color: '#8892b0', fontSize: '0.88rem', lineHeight: 1.7, marginBottom: '0.75rem' }}>
-                Transfer the total registration fee to the account below, then fill in your transaction ID.
-              </p>
-              <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '6px 16px' }}>
-                {settings.payment_account_title && (
-                  <>
-                    <span style={{ color: '#8892b0', fontSize: '0.85rem' }}>Account Title:</span>
-                    <span style={{ color: '#ffd700', fontWeight: 700 }}>{settings.payment_account_title}</span>
-                  </>
-                )}
-                <span style={{ color: '#8892b0', fontSize: '0.85rem' }}>Account #:</span>
-                <span style={{ color: '#fff', fontFamily: 'JetBrains Mono', fontSize: '0.95rem', fontWeight: 700, letterSpacing: 1 }}>{settings.payment_account}</span>
-                {settings.payment_account_name && (
-                  <>
-                    <span style={{ color: '#8892b0', fontSize: '0.85rem' }}>Bank / Service:</span>
-                    <span style={{ color: '#e8eaf6' }}>{settings.payment_account_name}</span>
-                  </>
-                )}
+              <div className="grid sm:grid-cols-2 gap-4">
+                <Field label="WhatsApp / Phone" error={errors.phone} icon={Phone}>
+                  <input value={form.phone} onChange={handle('phone')} placeholder="03XXXXXXXXX" className="input-premium pl-12" />
+                </Field>
+                <Field label="Email Address" required error={errors.email} icon={Mail}>
+                  <input type="email" value={form.email} onChange={handle('email')} placeholder="ali@gmail.com" className="input-premium pl-12" />
+                </Field>
               </div>
 
-              {/* Show total dynamically if competitions selected */}
-              {totalFee > 0 && (
-                <div style={{ marginTop: '1rem', padding: '0.75rem 1rem', background: 'rgba(255,215,0,0.06)', border: '1px solid rgba(255,215,0,0.2)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ color: '#ffd700', fontFamily: 'JetBrains Mono', fontSize: '0.82rem' }}>
-                    Total amount to transfer ({selectedComps.length} competition{selectedComps.length > 1 ? 's' : ''}):
-                  </span>
-                  <span style={{ color: '#ffd700', fontFamily: 'Bebas Neue', fontSize: '1.5rem', letterSpacing: 2 }}>
-                    PKR {totalFee.toLocaleString()}
-                  </span>
-                </div>
+              <Field label="University / Institute" required error={errors.institute} icon={Building}>
+                <select 
+                  onChange={handle('institute')} 
+                  className="input-premium pl-12 appearance-none cursor-pointer"
+                >
+                  <option value="">Select University</option>
+                  {universities.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+                  <option value="OTHER">Other / Not Listed</option>
+                </select>
+                <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+              </Field>
+
+              {/* ── Focal Person Info (Auto-filled) ── */}
+              {selectedUni && (
+                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="mb-6 p-5 bg-primary-50 rounded-2xl border border-primary-100 flex gap-4">
+                   <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-primary-600 shadow-sm flex-shrink-0"><UserCheck size={20}/></div>
+                   <div>
+                     <p className="text-[10px] font-black text-primary-400 uppercase tracking-widest mb-1">University Focal Person</p>
+                     <p className="text-sm font-bold text-primary-900">{selectedUni.focal_person}</p>
+                     <p className="text-xs text-primary-600 font-medium mt-0.5">{selectedUni.contact_number}</p>
+                   </div>
+                </motion.div>
               )}
-            </div>
-          )}
 
-          <form onSubmit={submit} noValidate>
-
-            {/* ── SECTION 1: Personal Info ── */}
-            <div className="glass" style={{ padding: '2rem', marginBottom: '1.5rem' }}>
-              <h3 style={{ fontFamily: 'Bebas Neue', letterSpacing: 2, color: '#00d4ff', fontSize: '1.1rem', marginBottom: '1.25rem', paddingBottom: '0.5rem', borderBottom: '1px solid rgba(0,212,255,0.15)' }}>
-                Personal Information
-              </h3>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1rem' }}>
-                <div data-field="student_name">
-                  <Field label="Full Name" required error={errors.student_name}>
-                    <input
-                      value={form.student_name}
-                      onChange={handle('student_name')}
-                      onBlur={e => setForm(p => ({ ...p, student_name: clean(e.target.value) }))}
-                      placeholder="Muhammad Ali"
-                      style={inputSt(!!errors.student_name)}
-                    />
-                  </Field>
-                </div>
-                <div data-field="phone">
-                  <Field label="Phone Number" error={errors.phone}>
-                    <input
-                      value={form.phone}
-                      onChange={handle('phone')}
-                      placeholder="03XX-XXXXXXX"
-                      style={inputSt(false)}
-                    />
-                  </Field>
-                </div>
-              </div>
-              <div data-field="email">
-                <Field label="Email Address" required error={errors.email}>
-                  <input
-                    type="email"
-                    value={form.email}
-                    onChange={handle('email')}
-                    onBlur={e => setForm(p => ({ ...p, email: clean(e.target.value).toLowerCase() }))}
-                    placeholder="you@example.com"
-                    style={inputSt(!!errors.email)}
-                  />
-                </Field>
-              </div>
-            </div>
-
-            {/* ── SECTION 2: Academic Info ── */}
-            <div className="glass" style={{ padding: '2rem', marginBottom: '1.5rem' }}>
-              <h3 style={{ fontFamily: 'Bebas Neue', letterSpacing: 2, color: '#00d4ff', fontSize: '1.1rem', marginBottom: '1.25rem', paddingBottom: '0.5rem', borderBottom: '1px solid rgba(0,212,255,0.15)' }}>
-                Academic Information
-              </h3>
-              <div data-field="institute">
-                <Field label="University / School / College" required error={errors.institute}>
-                  <div style={{ position: 'relative' }}>
-                    <select
-                      value={form.institute}
-                      onChange={handle('institute')}
-                      style={{ ...inputSt(!!errors.institute), paddingRight: 40, appearance: 'none', cursor: 'pointer' }}
-                    >
-                      <option value="">Select Your Institution</option>
-                      {INSTITUTES.map(i => <option key={i} value={i}>{i}</option>)}
-                    </select>
-                    <ChevronDown size={15} style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', color: '#8892b0', pointerEvents: 'none' }} />
-                  </div>
-                </Field>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1rem' }}>
-                <div data-field="department">
-                  <Field label="Department" required error={errors.department}>
-                    <div style={{ position: 'relative' }}>
-                      <select
-                        value={form.department}
-                        onChange={handle('department')}
-                        style={{ ...inputSt(!!errors.department), paddingRight: 40, appearance: 'none', cursor: 'pointer' }}
-                      >
-                        <option value="">Select Department</option>
-                        {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
-                      </select>
-                      <ChevronDown size={15} style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', color: '#8892b0', pointerEvents: 'none' }} />
+              {/* ── Manual Fields for "Other" ── */}
+              <AnimatePresence>
+                {isOther && (
+                  <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-1 mb-6 p-6 bg-gray-50 rounded-2xl border border-gray-100">
+                    <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-6">Institutional Metadata Required</p>
+                    
+                    <Field label="University Full Name" required error={errors.manual_institute} icon={Building}>
+                      <input value={form.manual_institute} onChange={handle('manual_institute')} placeholder="Enter University Name" className="input-premium pl-12 bg-white" />
+                    </Field>
+                    
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <Field label="Focal Person Name" required error={errors.focal_name} icon={User}>
+                        <input value={form.focal_name} onChange={handle('focal_name')} className="input-premium pl-12 bg-white" />
+                      </Field>
+                      <Field label="Focal Contact" required error={errors.focal_contact} icon={Phone}>
+                        <input value={form.focal_contact} onChange={handle('focal_contact')} className="input-premium pl-12 bg-white" />
+                      </Field>
                     </div>
-                  </Field>
-                </div>
-                <div data-field="reg_number">
-                  <Field label="Reg / Roll Number" required error={errors.reg_number}>
-                    <input
-                      value={form.reg_number}
-                      onChange={handle('reg_number')}
-                      onBlur={e => setForm(p => ({ ...p, reg_number: clean(e.target.value).toUpperCase() }))}
-                      placeholder="FA23-BSE-001"
-                      style={inputSt(!!errors.reg_number)}
-                    />
-                  </Field>
-                </div>
+                    
+                    <Field label="Focal Person Gmail" required error={errors.focal_email} icon={Mail}>
+                      <input type="email" value={form.focal_email} onChange={handle('focal_email')} placeholder="focal@gmail.com" className="input-premium pl-12 bg-white" />
+                    </Field>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <div className="grid sm:grid-cols-2 gap-4">
+                <Field label="Department" required error={errors.department} icon={Layout}>
+                  <select value={form.department} onChange={handle('department')} className="input-premium pl-12 appearance-none cursor-pointer">
+                    <option value="">Select Dept</option>
+                    {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
+                  </select>
+                  <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                </Field>
+                <Field label="Registration No." required error={errors.reg_number} icon={GraduationCap}>
+                  <input value={form.reg_number} onChange={handle('reg_number')} placeholder="FA23-XXX-001" className="input-premium pl-12" />
+                </Field>
               </div>
             </div>
 
-            {/* ── SECTION 3: Competition Selection ── */}
-            <div className="glass" style={{ padding: '2rem', marginBottom: '1.5rem' }} data-field="competitions">
-              <h3 style={{ fontFamily: 'Bebas Neue', letterSpacing: 2, color: '#00d4ff', fontSize: '1.1rem', marginBottom: '0.5rem', paddingBottom: '0.5rem', borderBottom: '1px solid rgba(0,212,255,0.15)' }}>
-                Competition Selection
+            {/* Competitions */}
+            <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
+              <h3 className="font-bold text-xl text-gray-900 mb-2 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-primary-100 text-primary-600 flex items-center justify-center"><Zap size={18}/></div>
+                Select Competitions
               </h3>
-              <p style={{ color: '#8892b0', fontSize: '0.82rem', marginBottom: '1.25rem', fontFamily: 'JetBrains Mono' }}>
-                Select one or more competitions. Tap to toggle.
-              </p>
+              <p className="text-gray-400 text-xs font-semibold uppercase tracking-widest mb-8 ml-11">Multiple Selection Allowed</p>
+              
+              {errors.competitions && <p className="mb-4 text-red-500 text-xs font-bold bg-red-50 p-3 rounded-xl border border-red-100 flex items-center gap-2 animate-shake"><Info size={14}/> {errors.competitions}</p>}
 
-              {errors.competitions && (
-                <p style={{ color: '#ff3d77', fontSize: '0.78rem', fontFamily: 'JetBrains Mono', marginBottom: '0.75rem' }}>⚠ {errors.competitions}</p>
-              )}
-
-              <div style={{ display: 'grid', gap: '0.6rem', marginBottom: '1.25rem' }}>
+              <div className="grid gap-3">
                 {competitions.map(comp => {
-                  const isSelected = selectedIds.includes(comp.id);
-                  const color = comp.color || '#00d4ff';
+                  const active = selectedIds.includes(comp.id);
                   return (
-                    <div
-                      key={comp.id}
-                      onClick={() => toggleComp(comp.id)}
-                      style={{
-                        padding: '0.9rem 1.1rem',
-                        cursor: 'pointer',
-                        background: isSelected ? `${color}10` : 'rgba(255,255,255,0.02)',
-                        border: `1px solid ${isSelected ? color + '50' : 'rgba(0,212,255,0.1)'}`,
-                        borderLeft: `3px solid ${isSelected ? color : 'transparent'}`,
-                        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                        transition: 'all 0.18s',
-                        gap: 10,
-                      }}
+                    <button key={comp.id} type="button" onClick={() => toggleComp(comp.id)}
+                      className={`flex items-center justify-between p-5 rounded-2xl border-2 transition-all duration-300 ${
+                        active ? 'border-primary-500 bg-primary-50/20 shadow-sm' : 'border-gray-100 bg-white hover:border-primary-200'
+                      }`}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, overflow: 'hidden' }}>
-                        {/* Checkbox */}
-                        <div style={{
-                          width: 20, height: 20, borderRadius: 4, flexShrink: 0,
-                          background: isSelected ? color : 'transparent',
-                          border: `2px solid ${isSelected ? color : 'rgba(0,212,255,0.3)'}`,
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          transition: 'all 0.15s',
-                        }}>
-                          {isSelected && <span style={{ color: '#050810', fontSize: '0.7rem', fontWeight: 900 }}>✓</span>}
+                      <div className="flex items-center gap-4 text-left">
+                        <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-colors ${active ? 'bg-primary-500 border-primary-500 text-white' : 'border-gray-200'}`}>
+                          {active && <CheckCircle size={14} strokeWidth={3} />}
                         </div>
-                        <div style={{ overflow: 'hidden' }}>
-                          <span style={{ color: isSelected ? '#e8eaf6' : '#8892b0', fontSize: '0.92rem', fontWeight: 600, display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                            {comp.title}
-                          </span>
-                          <span style={{ color: '#8892b0', fontSize: '0.72rem', fontFamily: 'JetBrains Mono', letterSpacing: 1 }}>
-                            {comp.category}
-                          </span>
+                        <div>
+                          <p className={`font-bold text-sm ${active ? 'text-primary-700' : 'text-gray-900'}`}>{comp.title}</p>
+                          <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest leading-none mt-1">{comp.category}</p>
                         </div>
                       </div>
-                      <span style={{ color: '#ffd700', fontFamily: 'Bebas Neue', fontSize: '1.05rem', letterSpacing: 1, flexShrink: 0 }}>
-                        PKR {comp.fee?.toLocaleString()}
-                      </span>
-                    </div>
-                  );
+                      <span className={`font-black ${active ? 'text-primary-600' : 'text-gray-400'}`}>PKR {comp.fee}</span>
+                    </button>
+                  )
                 })}
               </div>
+            </div>
+          </div>
 
-              {/* Selected summary + total */}
-              {selectedComps.length > 0 && (
-                <div style={{ padding: '1rem', background: 'rgba(0,212,255,0.04)', border: '1px solid rgba(0,212,255,0.15)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: selectedComps.length > 1 ? 8 : 0 }}>
-                    <span style={{ color: '#8892b0', fontSize: '0.85rem' }}>
-                      {selectedComps.length} competition{selectedComps.length > 1 ? 's' : ''} selected
-                    </span>
-                    <span style={{ color: '#ffd700', fontFamily: 'Bebas Neue', fontSize: '1.4rem', letterSpacing: 2 }}>
-                      Total: PKR {totalFee.toLocaleString()}
+          {/* Sticky Sidebar Info */}
+          <div className="lg:col-span-2 space-y-6">
+            <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 lg:sticky lg:top-28">
+              <div className="bg-gray-900 rounded-2xl p-6 mb-8 text-white relative overflow-hidden shadow-xl shadow-gray-200">
+                <div className="absolute top-0 right-0 p-4 opacity-10"><CreditCard size={100}/></div>
+                <h4 className="font-bold text-sm mb-4 uppercase tracking-widest opacity-60">Payment Account</h4>
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-[10px] font-black text-primary-400 uppercase tracking-widest mb-1">Account Title</p>
+                    <p className="font-bold">{settings.payment_account_title || 'CS Department'}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black text-primary-400 uppercase tracking-widest mb-1">Account Number</p>
+                    <p className="font-black text-2xl tracking-tighter">{settings.payment_account || '000000000000'}</p>
+                  </div>
+                  <div className="pt-2">
+                    <span className="px-3 py-1 bg-white/10 rounded-full text-[10px] font-bold border border-white/20 whitespace-nowrap">
+                      {settings.payment_account_name || 'HBL / Easypaisa'}
                     </span>
                   </div>
-                  {selectedComps.length > 1 && (
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
-                      {selectedComps.map(c => (
-                        <span key={c.id} style={{ padding: '2px 10px', background: `${c.color || '#00d4ff'}15`, color: c.color || '#00d4ff', fontSize: '0.72rem', fontFamily: 'JetBrains Mono', border: `1px solid ${c.color || '#00d4ff'}30`, display: 'flex', alignItems: 'center', gap: 5 }}>
-                          {c.title}
-                          <span
-                            onClick={(e) => { e.stopPropagation(); toggleComp(c.id); }}
-                            style={{ cursor: 'pointer', lineHeight: 1 }}
-                          >
-                            <X size={10} />
-                          </span>
-                        </span>
-                      ))}
-                    </div>
-                  )}
                 </div>
-              )}
-            </div>
-
-            {/* ── SECTION 4: Payment Proof ── */}
-            <div className="glass" style={{ padding: '2rem', marginBottom: '1.5rem' }}>
-              <h3 style={{ fontFamily: 'Bebas Neue', letterSpacing: 2, color: '#00d4ff', fontSize: '1.1rem', marginBottom: '1.25rem', paddingBottom: '0.5rem', borderBottom: '1px solid rgba(0,212,255,0.15)' }}>
-                Payment Verification
-              </h3>
-
-              {/* Total reminder */}
-              {totalFee > 0 && (
-                <div style={{ padding: '0.65rem 1rem', background: 'rgba(255,215,0,0.05)', border: '1px solid rgba(255,215,0,0.2)', marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ color: '#ffd700', fontSize: '0.82rem', fontFamily: 'JetBrains Mono' }}>Amount to transfer:</span>
-                  <span style={{ color: '#ffd700', fontFamily: 'Bebas Neue', fontSize: '1.3rem', letterSpacing: 1 }}>PKR {totalFee.toLocaleString()}</span>
-                </div>
-              )}
-
-              <div data-field="transaction_id">
-                <Field label="Transaction ID" required error={errors.transaction_id}>
-                  <input
-                    value={form.transaction_id}
-                    onChange={handle('transaction_id')}
-                    onBlur={e => setForm(p => ({ ...p, transaction_id: clean(e.target.value) }))}
-                    placeholder="e.g. TXN123456789"
-                    style={inputSt(!!errors.transaction_id)}
-                  />
-                </Field>
               </div>
 
-              <Field label="Screenshot URL (Optional — upload to GitHub & paste link)" error={errors.screenshot_url}>
-                <input
-                  value={form.screenshot_url}
-                  onChange={handle('screenshot_url')}
-                  placeholder="https://github.com/user-attachments/assets/..."
-                  style={inputSt(false)}
-                />
-                <p style={{ color: 'rgba(0,212,255,0.5)', fontSize: '0.75rem', marginTop: 5, fontFamily: 'JetBrains Mono', display: 'flex', alignItems: 'center', gap: 5 }}>
-                  <Info size={11} /> Upload to GitHub Issues or Imgur → paste URL here
-                </p>
-              </Field>
+              <div className="mb-8">
+                <Field label="Transaction ID" required error={errors.transaction_id} icon={ShieldCheck}>
+                   <input value={form.transaction_id} onChange={handle('transaction_id')} placeholder="TXN-XXXXXXX" className="input-premium pl-12" />
+                </Field>
+                <div className="text-[10px] text-gray-400 font-medium leading-relaxed px-1">
+                   Transfer the total amount matching your selection below, then enter the ID. Verification is required.
+                </div>
+              </div>
+
+              <div className="pt-6 border-t border-gray-100 flex flex-col gap-6">
+                 <div className="flex justify-between items-center px-1">
+                    <p className="text-gray-500 font-bold text-sm">Total Payable</p>
+                    <p className="font-black text-3xl text-primary-600 tracking-tighter">PKR {totalFee}</p>
+                 </div>
+                 
+                 <button type="submit" disabled={submitting} className="btn-primary w-full justify-center py-5 shadow-lg shadow-primary-200 text-base font-bold">
+                    {submitting ? 'Processing...' : 'Complete Registration'} <ArrowRight size={18} />
+                 </button>
+              </div>
             </div>
+          </div>
 
-            {/* ── Submit ── */}
-            <button
-              type="submit"
-              className="btn-neon"
-              disabled={submitting}
-              style={{ width: '100%', fontSize: '1.05rem', padding: '16px', cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.7 : 1, border: 'none' }}
-            >
-              {submitting
-                ? 'Submitting Request...'
-                : `Submit Registration${selectedComps.length > 1 ? ` (${selectedComps.length} competitions)` : ''}`
-              }
-            </button>
-
-            {totalFee > 0 && (
-              <p style={{ color: '#8892b0', fontSize: '0.82rem', textAlign: 'center', marginTop: '0.75rem', fontFamily: 'JetBrains Mono' }}>
-                Total payable: <strong style={{ color: '#ffd700' }}>PKR {totalFee.toLocaleString()}</strong>
-                {' '}· After approval, credentials will be sent to your email.
-              </p>
-            )}
-          </form>
-        </div>
+        </form>
       </section>
+
       <Footer />
     </div>
   );

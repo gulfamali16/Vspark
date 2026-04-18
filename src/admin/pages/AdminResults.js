@@ -122,19 +122,15 @@ export default function AdminResults() {
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)' }}>
+    <div className="admin-layout">
       <AdminSidebar />
-      <main style={{ marginLeft: 240, flex: 1, padding: '2.5rem' }}>
+      <main className="admin-main">
 
         {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+        <div className="admin-page-header flex justify-between items-start flex-wrap gap-4">
           <div>
-            <h1 style={{ fontFamily: 'Bebas Neue', fontSize: '2.5rem', letterSpacing: 3, color: '#e8eaf6', marginBottom: 2 }}>
-              Competition <span style={{ color: '#ffd700' }}>Results</span>
-            </h1>
-            <p style={{ color: '#8892b0', fontFamily: 'JetBrains Mono', fontSize: '0.76rem' }}>
-              Announce winners and publish competition results
-            </p>
+            <h1 className="admin-page-title">Competition Results</h1>
+            <p className="text-gray-500 text-sm font-medium mt-1">Announce winners and publish competition results</p>
           </div>
           <button
             onClick={() => {
@@ -157,105 +153,45 @@ export default function AdminResults() {
                 is_published: false,
               });
             }}
-            className="btn-neon btn-orange"
-            style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: '0.88rem' }}
+            className="btn-primary text-sm"
           >
             <Plus size={15} /> New Result
           </button>
         </div>
 
         {/* Results List */}
-        <div className="glass" style={{ padding: '1.5rem' }}>
+        <div className="admin-card">
           {loading ? (
-            <div style={{ textAlign: 'center', padding: '2rem', color: '#8892b0' }}>Loading...</div>
+            <div className="text-center py-12 text-gray-400 font-medium">Loading...</div>
           ) : results.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '2rem', color: '#8892b0' }}>
-              No results announced yet. Create the first one!
+            <div className="text-center py-16">
+              <p className="text-gray-500 font-medium">No results announced yet. Create the first one!</p>
             </div>
           ) : (
-            <div style={{ display: 'grid', gap: '1rem' }}>
+            <div className="space-y-4">
               {results.map(r => {
                 const comp = competitions[r.competition_id];
                 return (
-                  <div
-                    key={r.id}
-                    style={{
-                      padding: '1rem',
-                      background: 'rgba(255,255,255,0.02)',
-                      border: `1px solid ${comp?.color || '#00d4ff'}25`,
-                      borderLeft: `3px solid ${comp?.color || '#00d4ff'}`,
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      gap: 16,
-                      flexWrap: 'wrap',
-                    }}
-                  >
-                    <div style={{ flex: 1 }}>
-                      <p style={{ color: '#e8eaf6', fontWeight: 600, fontSize: '0.95rem', marginBottom: 4 }}>
+                  <div key={r.id} className="flex justify-between items-center gap-4 flex-wrap p-4 bg-gray-50 rounded-2xl border border-gray-100 relative overflow-hidden">
+                    <div className="absolute left-0 top-0 w-1.5 h-full rounded-l-xl" style={{ background: comp?.color || '#4F46E5' }} />
+                    <div className="flex-1 pl-3">
+                      <p className="font-sora font-bold text-gray-900 mb-2">
                         {comp?.title || `Competition #${r.competition_id}`}
                       </p>
-                      <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.8rem', color: '#8892b0' }}>
-                        <div>
-                          <span style={{ color: '#ffd700', fontWeight: 600 }}>🥇</span> {r.first_place || '—'}
-                        </div>
-                        <div>
-                          <span style={{ color: '#c0c0c0', fontWeight: 600 }}>🥈</span> {r.second_place || '—'}
-                        </div>
-                        <div>
-                          <span style={{ color: '#cd7f32', fontWeight: 600 }}>🥉</span> {r.third_place || '—'}
-                        </div>
+                      <div className="flex gap-5 text-sm font-medium text-gray-600 flex-wrap">
+                        <span>🥇 {r.first_place || '—'}</span>
+                        <span>🥈 {r.second_place || '—'}</span>
+                        <span>🥉 {r.third_place || '—'}</span>
                       </div>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      {r.is_published && (
-                        <span style={{ padding: '4px 10px', background: 'rgba(0,255,136,0.1)', color: '#00ff88', fontSize: '0.7rem', border: '1px solid rgba(0,255,136,0.3)', fontWeight: 600 }}>
-                          <CheckCircle size={12} style={{ display: 'inline', marginRight: 4 }} /> PUBLISHED
-                        </span>
-                      )}
-                      {!r.is_published && (
-                        <span style={{ padding: '4px 10px', background: 'rgba(255,107,0,0.1)', color: '#ff6b00', fontSize: '0.7rem', border: '1px solid rgba(255,107,0,0.3)', fontWeight: 600 }}>
-                          <Clock size={12} style={{ display: 'inline', marginRight: 4 }} /> DRAFT
-                        </span>
-                      )}
-
-                      <button
-                        onClick={() => startEdit(r)}
-                        style={{
-                          width: 32,
-                          height: 32,
-                          background: 'rgba(0,212,255,0.1)',
-                          border: '1px solid rgba(0,212,255,0.3)',
-                          color: '#00d4ff',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          borderRadius: 4,
-                        }}
-                        title="Edit"
-                      >
-                        <Edit size={14} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(r.id)}
-                        style={{
-                          width: 32,
-                          height: 32,
-                          background: 'rgba(255,61,119,0.08)',
-                          border: '1px solid rgba(255,61,119,0.25)',
-                          color: '#ff3d77',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          borderRadius: 4,
-                        }}
-                        title="Delete"
-                      >
-                        <Trash2 size={14} />
-                      </button>
+                    <div className="flex items-center gap-3">
+                      {r.is_published
+                        ? <span className="status-approved flex items-center gap-1"><CheckCircle size={12} /> PUBLISHED</span>
+                        : <span className="status-pending flex items-center gap-1"><Clock size={12} /> DRAFT</span>
+                      }
+                      <button onClick={() => startEdit(r)} className="btn-outline text-xs py-1.5 px-3" title="Edit"><Edit size={13} /> Edit</button>
+                      <button onClick={() => handleDelete(r.id)} className="btn-danger text-xs py-1.5 px-3" title="Delete"><Trash2 size={13} /> Delete</button>
                     </div>
                   </div>
                 );
@@ -267,296 +203,84 @@ export default function AdminResults() {
 
       {/* ── Edit Modal ── */}
       {isEditing && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0,0,0,0.88)',
-            zIndex: 9999,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '2rem',
-          }}
-          onClick={() => setIsEditing(false)}
-        >
-          <div
-            className="glass"
-            style={{
-              width: '100%',
-              maxWidth: 700,
-              padding: '2.5rem',
-              borderColor: 'rgba(0,212,255,0.3)',
-              maxHeight: '90vh',
-              overflowY: 'auto',
-            }}
-            onClick={e => e.stopPropagation()}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2rem' }}>
-              <h2 style={{ fontFamily: 'Bebas Neue', fontSize: '1.8rem', letterSpacing: 2, color: '#e8eaf6' }}>
-                {selected ? 'Edit Result' : 'New Result'}
-              </h2>
-              <button
-                onClick={() => setIsEditing(false)}
-                style={{ background: 'none', border: 'none', color: '#8892b0', cursor: 'pointer' }}
-              >
-                <X size={20} />
-              </button>
+        <div className="fixed inset-0 bg-gray-900/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-6" onClick={() => setIsEditing(false)}>
+          <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl p-8 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-100">
+              <h2 className="font-sora font-bold text-xl text-gray-900">{selected ? 'Edit Result' : 'New Result'}</h2>
+              <button onClick={() => setIsEditing(false)} className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-500"><X size={18} /></button>
             </div>
 
             {/* Form Fields */}
-            <div style={{ display: 'grid', gap: '1.5rem' }}>
+            <div className="space-y-5">
               {/* Competition Select */}
               <div>
-                <label style={{ display: 'block', color: '#8892b0', fontSize: '0.84rem', marginBottom: 8, fontWeight: 600 }}>
-                  Competition *
-                </label>
+                <label className="block font-sora font-bold text-xs text-gray-500 uppercase tracking-widest mb-2">Competition *</label>
                 <select
-                  name="competition_id"
-                  value={formData.competition_id}
-                  onChange={handleInputChange}
-                  disabled={!!selected}
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    background: 'rgba(255,255,255,0.04)',
-                    border: '1px solid rgba(0,212,255,0.2)',
-                    color: '#e8eaf6',
-                    borderRadius: 4,
-                    fontSize: '0.88rem',
-                    cursor: selected ? 'not-allowed' : 'pointer',
-                    opacity: selected ? 0.6 : 1,
-                  }}
+                  name="competition_id" value={formData.competition_id} onChange={handleInputChange} disabled={!!selected}
+                  className={`admin-input ${selected ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
                 >
                   <option value="">Select Competition</option>
                   {Object.entries(competitions).map(([id, comp]) => (
-                    <option key={id} value={id}>
-                      {comp.title}
-                    </option>
+                    <option key={id} value={id}>{comp.title}</option>
                   ))}
                 </select>
               </div>
 
-              {/* 1st Place */}
-              <div>
-                <label style={{ display: 'block', color: '#ffd700', fontSize: '0.84rem', marginBottom: 8, fontWeight: 600 }}>
-                  🥇 1st Place Winner *
-                </label>
-                <input
-                  type="text"
-                  name="first_place"
-                  value={formData.first_place}
-                  onChange={handleInputChange}
-                  placeholder="e.g., Team Alpha / John Doe"
-                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,215,0,0.2)', color: '#e8eaf6', borderRadius: 4, fontSize: '0.88rem' }}
-                />
-              </div>
-              <div>
-                <label style={{ display: 'block', color: '#8892b0', fontSize: '0.84rem', marginBottom: 8 }}>
-                  Additional Info (e.g., score, time)
-                </label>
-                <input
-                  type="text"
-                  name="first_place_info"
-                  value={formData.first_place_info}
-                  onChange={handleInputChange}
-                  placeholder="Optional details"
-                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(0,212,255,0.2)', color: '#e8eaf6', borderRadius: 4, fontSize: '0.88rem' }}
-                />
-              </div>
-              <div>
-                <label style={{ display: 'block', color: '#8892b0', fontSize: '0.84rem', marginBottom: 8 }}>
-                  University / Institution
-                </label>
-                <input
-                  type="text"
-                  name="first_university"
-                  value={formData.first_university}
-                  onChange={handleInputChange}
-                  placeholder="e.g., MIT, Stanford University"
-                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(0,212,255,0.2)', color: '#e8eaf6', borderRadius: 4, fontSize: '0.88rem' }}
-                />
-              </div>
+              {/* Place Winners */}
+              {[
+                { emoji: '🥇', label: '1st Place Winner *', field: 'first_place', infoField: 'first_place_info', uniField: 'first_university' },
+                { emoji: '🥈', label: '2nd Place Winner', field: 'second_place', infoField: 'second_place_info', uniField: 'second_university' },
+                { emoji: '🥉', label: '3rd Place Winner', field: 'third_place', infoField: 'third_place_info', uniField: 'third_university' },
+              ].map(({ emoji, label, field, infoField, uniField }) => (
+                <div key={field} className="bg-gray-50 rounded-2xl p-5 border border-gray-100">
+                  <label className="block font-sora font-bold text-sm text-gray-700 mb-3">{emoji} {label}</label>
+                  <div className="grid sm:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-xs text-gray-400 font-semibold mb-1.5">Team / Name</label>
+                      <input type="text" name={field} value={formData[field]} onChange={handleInputChange} placeholder="e.g. Team Alpha" className="admin-input text-sm" />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 font-semibold mb-1.5">Additional Info</label>
+                      <input type="text" name={infoField} value={formData[infoField]} onChange={handleInputChange} placeholder="Score / time" className="admin-input text-sm" />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 font-semibold mb-1.5">University</label>
+                      <input type="text" name={uniField} value={formData[uniField]} onChange={handleInputChange} placeholder="Institution" className="admin-input text-sm" />
+                    </div>
+                  </div>
+                </div>
+              ))}
 
-              {/* 2nd Place */}
+              {/* Extra Fields */}
               <div>
-                <label style={{ display: 'block', color: '#c0c0c0', fontSize: '0.84rem', marginBottom: 8, fontWeight: 600 }}>
-                  🥈 2nd Place Winner
-                </label>
-                <input
-                  type="text"
-                  name="second_place"
-                  value={formData.second_place}
-                  onChange={handleInputChange}
-                  placeholder="Optional"
-                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(192,192,192,0.2)', color: '#e8eaf6', borderRadius: 4, fontSize: '0.88rem' }}
-                />
+                <label className="block font-sora font-bold text-xs text-gray-500 uppercase tracking-widest mb-2">Result Description</label>
+                <textarea name="result_description" value={formData.result_description} onChange={handleInputChange}
+                  placeholder="Add details about the competition, highlights..." className="admin-input resize-y min-h-[100px]" />
               </div>
-              <div>
-                <label style={{ display: 'block', color: '#8892b0', fontSize: '0.84rem', marginBottom: 8 }}>
-                  Additional Info
-                </label>
-                <input
-                  type="text"
-                  name="second_place_info"
-                  value={formData.second_place_info}
-                  onChange={handleInputChange}
-                  placeholder="Optional details"
-                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(0,212,255,0.2)', color: '#e8eaf6', borderRadius: 4, fontSize: '0.88rem' }}
-                />
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block font-sora font-bold text-xs text-gray-500 uppercase tracking-widest mb-2">Result Image URL</label>
+                  <input type="url" name="result_image_url" value={formData.result_image_url} onChange={handleInputChange}
+                    placeholder="https://example.com/image.jpg" className="admin-input" />
+                </div>
+                <div>
+                  <label className="block font-sora font-bold text-xs text-gray-500 uppercase tracking-widest mb-2">💰 Cash Prize / Reward</label>
+                  <input type="text" name="cash_prize" value={formData.cash_prize} onChange={handleInputChange}
+                    placeholder="Rs. 50,000 / Internship offer" className="admin-input" />
+                </div>
               </div>
-              <div>
-                <label style={{ display: 'block', color: '#8892b0', fontSize: '0.84rem', marginBottom: 8 }}>
-                  University / Institution
-                </label>
-                <input
-                  type="text"
-                  name="second_university"
-                  value={formData.second_university}
-                  onChange={handleInputChange}
-                  placeholder="e.g., MIT, Stanford University"
-                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(0,212,255,0.2)', color: '#e8eaf6', borderRadius: 4, fontSize: '0.88rem' }}
-                />
-              </div>
-
-              {/* 3rd Place */}
-              <div>
-                <label style={{ display: 'block', color: '#cd7f32', fontSize: '0.84rem', marginBottom: 8, fontWeight: 600 }}>
-                  🥉 3rd Place Winner
-                </label>
-                <input
-                  type="text"
-                  name="third_place"
-                  value={formData.third_place}
-                  onChange={handleInputChange}
-                  placeholder="Optional"
-                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(205,127,50,0.2)', color: '#e8eaf6', borderRadius: 4, fontSize: '0.88rem' }}
-                />
-              </div>
-              <div>
-                <label style={{ display: 'block', color: '#8892b0', fontSize: '0.84rem', marginBottom: 8 }}>
-                  Additional Info
-                </label>
-                <input
-                  type="text"
-                  name="third_place_info"
-                  value={formData.third_place_info}
-                  onChange={handleInputChange}
-                  placeholder="Optional details"
-                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(0,212,255,0.2)', color: '#e8eaf6', borderRadius: 4, fontSize: '0.88rem' }}
-                />
-              </div>
-              <div>
-                <label style={{ display: 'block', color: '#8892b0', fontSize: '0.84rem', marginBottom: 8 }}>
-                  University / Institution
-                </label>
-                <input
-                  type="text"
-                  name="third_university"
-                  value={formData.third_university}
-                  onChange={handleInputChange}
-                  placeholder="e.g., MIT, Stanford University"
-                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(0,212,255,0.2)', color: '#e8eaf6', borderRadius: 4, fontSize: '0.88rem' }}
-                />
-              </div>
-
-              {/* Description */}
-              <div>
-                <label style={{ display: 'block', color: '#8892b0', fontSize: '0.84rem', marginBottom: 8, fontWeight: 600 }}>
-                  Result Description
-                </label>
-                <textarea
-                  name="result_description"
-                  value={formData.result_description}
-                  onChange={handleInputChange}
-                  placeholder="Add details about the competition, highlights, statistics..."
-                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(0,212,255,0.2)', color: '#e8eaf6', borderRadius: 4, fontSize: '0.88rem', minHeight: 100, resize: 'vertical', fontFamily: 'inherit' }}
-                />
-              </div>
-
-              {/* Image URL */}
-              <div>
-                <label style={{ display: 'block', color: '#8892b0', fontSize: '0.84rem', marginBottom: 8, fontWeight: 600 }}>
-                  Result Image URL (optional)
-                </label>
-                <input
-                  type="url"
-                  name="result_image_url"
-                  value={formData.result_image_url}
-                  onChange={handleInputChange}
-                  placeholder="https://example.com/image.jpg"
-                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(0,212,255,0.2)', color: '#e8eaf6', borderRadius: 4, fontSize: '0.88rem' }}
-                />
-              </div>
-
-              {/* Cash Prize */}
-              <div>
-                <label style={{ display: 'block', color: '#8892b0', fontSize: '0.84rem', marginBottom: 8, fontWeight: 600 }}>
-                  💰 Cash Prize or Reward
-                </label>
-                <input
-                  type="text"
-                  name="cash_prize"
-                  value={formData.cash_prize}
-                  onChange={handleInputChange}
-                  placeholder="e.g., $5000, Rs. 50,000, Internship offer"
-                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(0,212,255,0.2)', color: '#e8eaf6', borderRadius: 4, fontSize: '0.88rem' }}
-                />
-              </div>
-
-              {/* Publish Checkbox */}
-              <div>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', color: '#e8eaf6' }}>
-                  <input
-                    type="checkbox"
-                    name="is_published"
-                    checked={formData.is_published}
-                    onChange={handleInputChange}
-                    style={{ width: 18, height: 18, cursor: 'pointer' }}
-                  />
-                  <span style={{ fontSize: '0.9rem' }}>Publish Result (visible on public website)</span>
-                </label>
-              </div>
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input type="checkbox" name="is_published" checked={formData.is_published} onChange={handleInputChange} className="w-5 h-5" />
+                <span className="font-sora font-bold text-gray-700 text-sm">Publish Result (visible on public website)</span>
+              </label>
             </div>
 
             {/* Buttons */}
-            <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
-              <button
-                onClick={handleSave}
-                style={{
-                  flex: 1,
-                  padding: '12px',
-                  background: 'rgba(0,255,136,0.1)',
-                  border: '2px solid #00ff88',
-                  color: '#00ff88',
-                  cursor: 'pointer',
-                  fontFamily: 'Bebas Neue',
-                  letterSpacing: 2,
-                  fontSize: '0.95rem',
-                  borderRadius: 4,
-                }}
-                onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,255,136,0.2)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,255,136,0.1)'}
-              >
+            <div className="flex gap-4 mt-6">
+              <button onClick={handleSave} className="flex-1 btn-primary justify-center py-3">
                 {selected ? 'Update Result' : 'Create Result'}
               </button>
-              <button
-                onClick={() => setIsEditing(false)}
-                style={{
-                  flex: 1,
-                  padding: '12px',
-                  background: 'rgba(255,61,119,0.08)',
-                  border: '2px solid #ff3d77',
-                  color: '#ff3d77',
-                  cursor: 'pointer',
-                  fontFamily: 'Bebas Neue',
-                  letterSpacing: 2,
-                  fontSize: '0.95rem',
-                  borderRadius: 4,
-                }}
-                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,61,119,0.15)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,61,119,0.08)'}
-              >
+              <button onClick={() => setIsEditing(false)} className="flex-1 btn-danger justify-center py-3">
                 Cancel
               </button>
             </div>

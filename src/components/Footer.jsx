@@ -1,34 +1,66 @@
+/**
+ * Footer.jsx — Premium light-theme footer
+ * Clean white footer with structured grid, social links, bottom bar
+ */
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { MapPin, Mail, Instagram, Globe, Zap } from 'lucide-react'
+import { MapPin, Mail, Globe, Instagram, Facebook, Zap, ArrowUpRight } from 'lucide-react'
 
 const VSPARK_LOGO = 'https://github.com/user-attachments/assets/898fc673-4cc8-440d-957e-21d6942085e5'
 
+const QUICK_LINKS = [
+  { to: '/competitions', label: 'Competitions' },
+  { to: '/events',       label: 'Upcoming Events' },
+  { to: '/register',     label: 'Register Free' },
+  { to: '/highlights',   label: 'Highlights' },
+  { to: '/blogs',        label: 'Blog & News' },
+]
+
+const COMPETITIONS_LIST = [
+  'Speed Programming', 'Web Development', 'E-Gaming (FIFA/Tekken)',
+  'UI/UX Design', 'Prompt Engineering', 'Quiz Competition', 'Poster Designing',
+]
+
+const CONTACT_ITEMS = [
+  { Icon: MapPin, text: 'CUI Vehari, Adda Pir Murad, Vehari, Punjab, Pakistan' },
+  { Icon: Mail,   text: 'hodcs@cuivehari.edu.pk' },
+  { Icon: Globe,  text: 'ww2.comsats.edu.pk/cs_vhr' },
+]
+
 export default function Footer() {
+  const linkStyle = {
+    display:        'block',
+    color:          '#6B7280',
+    textDecoration: 'none',
+    fontSize:       '14px',
+    marginBottom:   '10px',
+    transition:     'color 0.18s',
+    fontWeight:     450,
+  }
+
   return (
-    <footer style={{ background: 'var(--surface)', borderTop: '1px solid var(--border)', padding: '80px 0 40px' }}>
+    <footer style={{ background: '#fff', borderTop: '1px solid #E5E7EB', padding: '72px 0 0' }}>
       <div className="container">
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 48, marginBottom: 60 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '48px', marginBottom: '64px' }}>
+
           {/* Brand */}
           <div>
-            <img src={VSPARK_LOGO} alt="VSpark" style={{ height: 44, marginBottom: 16 }} />
-            <p style={{ color: 'var(--text-muted)', lineHeight: 1.7, fontSize: '0.9rem', marginBottom: 20 }}>
-              COMSATS University Islamabad, Vehari Campus — Department of Computer Science's flagship technical innovation competition.
+            <img src={VSPARK_LOGO} alt="VSpark" style={{ height: 40, marginBottom: 16, objectFit: 'contain' }} />
+            <p style={{ color: '#6B7280', fontSize: '14px', lineHeight: 1.75, marginBottom: 20 }}>
+              COMSATS University Islamabad, Vehari Campus — CS Department's premier national-level innovation competition.
             </p>
-            <div style={{ display: 'flex', gap: 12 }}>
+            <div style={{ display: 'flex', gap: 10 }}>
               {[
-                { icon: <Instagram size={18} />, label: 'Instagram' },
-                { icon: <Globe size={18} />, label: 'Web' },
-              ].map(s => (
-                <a key={s.label} href="#" style={{
-                  width: 40, height: 40, border: '1px solid var(--border)', borderRadius: 8,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: 'var(--text-muted)', textDecoration: 'none', transition: 'all 0.3s',
-                }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.color = 'var(--primary)' }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-muted)' }}
+                { Icon: Facebook, href: 'https://web.facebook.com/people/Department-of-Computer-Science-CUI-Vehari/61582504795576/' },
+                { Icon: Instagram, href: 'https://www.instagram.com/comsats_vehari_official/' },
+              ].map(({ Icon, href }, i) => (
+                <a
+                  key={i} href={href} target="_blank" rel="noreferrer"
+                  style={{ width: 36, height: 36, border: '1.5px solid #E5E7EB', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6B7280', textDecoration: 'none', transition: 'all 0.18s' }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = '#4F46E5'; e.currentTarget.style.color = '#4F46E5'; e.currentTarget.style.background = '#EEF2FF' }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = '#E5E7EB'; e.currentTarget.style.color = '#6B7280'; e.currentTarget.style.background = 'transparent' }}
                 >
-                  {s.icon}
+                  <Icon size={16} />
                 </a>
               ))}
             </div>
@@ -36,59 +68,46 @@ export default function Footer() {
 
           {/* Quick Links */}
           <div>
-            <h3 style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, marginBottom: 20, color: 'var(--text)' }}>Quick Links</h3>
-            {[
-              { to: '/competitions', label: 'Competitions' },
-              { to: '/events', label: 'Upcoming Events' },
-              { to: '/register', label: 'Register' },
-              { to: '/highlights', label: 'Highlights' },
-              { to: '/blogs', label: 'Blog' },
-            ].map(link => (
-              <Link key={link.to} to={link.to} style={{
-                display: 'block', color: 'var(--text-muted)', textDecoration: 'none',
-                marginBottom: 10, fontSize: '0.9rem', transition: 'color 0.2s',
-              }}
-                onMouseEnter={e => e.currentTarget.style.color = 'var(--primary)'}
-                onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
+            <h4 style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#374151', marginBottom: 20 }}>Quick Links</h4>
+            {QUICK_LINKS.map(l => (
+              <Link key={l.to} to={l.to} style={linkStyle}
+                onMouseEnter={e => { e.currentTarget.style.color = '#4F46E5' }}
+                onMouseLeave={e => { e.currentTarget.style.color = '#6B7280' }}
               >
-                → {link.label}
+                → {l.label}
               </Link>
             ))}
           </div>
 
           {/* Competitions */}
           <div>
-            <h3 style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, marginBottom: 20, color: 'var(--text)' }}>Competitions</h3>
-            {['Speed Programming', 'Web Development', 'E-Gaming (FIFA/Tekken)', 'UI/UX Design', 'Prompt Engineering', 'Quiz Competition', 'Poster Designing'].map(c => (
-              <p key={c} style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginBottom: 8 }}>• {c}</p>
+            <h4 style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#374151', marginBottom: 20 }}>Competitions</h4>
+            {COMPETITIONS_LIST.map(c => (
+              <p key={c} style={{ color: '#6B7280', fontSize: '14px', marginBottom: 8 }}>· {c}</p>
             ))}
           </div>
 
           {/* Contact */}
           <div>
-            <h3 style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, marginBottom: 20, color: 'var(--text)' }}>Contact</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              {[
-                { icon: <MapPin size={16} />, text: 'COMSATS University, Vehari Campus, Vehari, Punjab, Pakistan' },
-                { icon: <Mail size={16} />, text: 'cs.vehari@comsats.edu.pk' },
-                { icon: <Globe size={16} />, text: 'www.comsats.edu.pk' },
-              ].map((item, i) => (
-                <div key={i} style={{ display: 'flex', gap: 10, color: 'var(--text-muted)', fontSize: '0.875rem', alignItems: 'flex-start' }}>
-                  <span style={{ color: 'var(--primary)', marginTop: 2, flexShrink: 0 }}>{item.icon}</span>
-                  {item.text}
-                </div>
-              ))}
-            </div>
+            <h4 style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#374151', marginBottom: 20 }}>Contact</h4>
+            {CONTACT_ITEMS.map(({ Icon, text }, i) => (
+              <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginBottom: 14 }}>
+                <Icon size={15} style={{ color: '#4F46E5', marginTop: 2, flexShrink: 0 }} />
+                <span style={{ color: '#6B7280', fontSize: '14px', lineHeight: 1.6 }}>{text}</span>
+              </div>
+            ))}
           </div>
         </div>
 
-        <div style={{ borderTop: '1px solid var(--border)', paddingTop: 32, display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>
+        {/* Bottom bar */}
+        <div style={{ borderTop: '1px solid #E5E7EB', padding: '24px 0', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+          <p style={{ color: '#9CA3AF', fontSize: '13px' }}>
             © 2025 VSpark — COMSATS University Islamabad, Vehari Campus. All rights reserved.
           </p>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-muted)', fontSize: '0.875rem' }}>
-            <Zap size={14} style={{ color: 'var(--primary)' }} />
-            Department of Computer Science
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Zap size={13} style={{ color: '#4F46E5' }} />
+            <span style={{ color: '#9CA3AF', fontSize: '13px' }}>Department of Computer Science</span>
+            <Link to="/admin/login" style={{ color: '#D1D5DB', fontSize: '12px', textDecoration: 'none', marginLeft: 12 }}>Admin</Link>
           </div>
         </div>
       </div>

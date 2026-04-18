@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, MapPin, Clock, ChevronRight } from 'lucide-react';
+import { Calendar, MapPin, Clock, Loader2, Megaphone } from 'lucide-react';
+import { motion } from 'framer-motion';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { supabase } from '../lib/supabase';
@@ -23,92 +24,135 @@ export default function Events() {
   }, []);
 
   const statusColors = {
-    upcoming: { bg: 'rgba(0,212,255,0.08)', border: 'rgba(0,212,255,0.25)', color: '#00d4ff', label: 'UPCOMING' },
-    registration_open: { bg: 'rgba(0,255,136,0.08)', border: 'rgba(0,255,136,0.25)', color: '#00ff88', label: 'REGISTRATION OPEN' },
-    registration_closed: { bg: 'rgba(255,107,0,0.08)', border: 'rgba(255,107,0,0.25)', color: '#ff6b00', label: 'REGISTRATION CLOSED' },
-    ongoing: { bg: 'rgba(255,215,0,0.08)', border: 'rgba(255,215,0,0.25)', color: '#ffd700', label: 'ONGOING' },
-    completed: { bg: 'rgba(255,255,255,0.04)', border: 'rgba(255,255,255,0.1)', color: '#8892b0', label: 'COMPLETED' },
+    upcoming: { bg: 'bg-primary-50', border: 'border-primary-200', text: 'text-primary-700', dot: 'bg-primary-500', label: 'UPCOMING' },
+    registration_open: { bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', dot: 'bg-emerald-500', label: 'REGISTRATION OPEN', animate: true },
+    registration_closed: { bg: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-700', dot: 'bg-orange-500', label: 'REGISTRATION CLOSED' },
+    ongoing: { bg: 'bg-yellow-50', border: 'border-yellow-200', text: 'text-yellow-700', dot: 'bg-yellow-500', label: 'ONGOING' },
+    completed: { bg: 'bg-gray-100', border: 'border-gray-200', text: 'text-gray-600', dot: 'bg-gray-400', label: 'COMPLETED' },
   };
 
   const status = statusColors[settings.event_status] || statusColors.upcoming;
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
 
-      <section style={{ padding: '10rem 2rem 5rem', textAlign: 'center', background: 'radial-gradient(ellipse at top,rgba(0,212,255,0.07) 0%,transparent 60%)' }}>
-        <span className="tag" style={{ display: 'inline-block', marginBottom: '1rem' }}>Event Schedule</span>
-        <h1 className="section-title" style={{ display: 'block', marginBottom: '1rem' }}>Events</h1>
+      <section className="pt-40 pb-20 px-6 text-center bg-gradient-to-b from-primary-50 to-transparent">
+        <span className="badge-premium mb-6">Event Schedule</span>
+        <h1 className="font-sora font-black text-5xl md:text-6xl text-gray-900 mb-8">Events</h1>
 
         {/* Event Status Banner */}
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 20px', background: status.bg, border: `1px solid ${status.border}`, marginBottom: '1.5rem' }}>
-          <span style={{ width: 8, height: 8, borderRadius: '50%', background: status.color, animation: settings.event_status === 'registration_open' ? 'pulse-glow 2s infinite' : 'none' }} />
-          <span style={{ color: status.color, fontFamily: 'JetBrains Mono', fontSize: '0.78rem', letterSpacing: 2 }}>{status.label}</span>
+        <div className={`inline-flex items-center gap-3 px-6 py-2.5 rounded-full border ${status.bg} ${status.border} mb-6 shadow-sm`}>
+          <span className={`w-2.5 h-2.5 rounded-full ${status.dot} ${status.animate ? 'animate-pulse' : ''}`} />
+          <span className={`font-bold text-xs tracking-widest ${status.text}`}>{status.label}</span>
         </div>
 
         {settings.event_date && (
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', flexWrap: 'wrap', marginTop: '1rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Calendar size={15} style={{ color: '#00d4ff' }} />
-              <span style={{ color: '#e8eaf6', fontFamily: 'JetBrains Mono', fontSize: '0.85rem' }}>{settings.event_date}</span>
+          <div className="flex justify-center gap-8 flex-wrap mt-4">
+            <div className="flex items-center gap-2 text-gray-600 font-medium bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-100">
+              <Calendar className="w-5 h-5 text-primary-500" />
+              <span>{settings.event_date}</span>
             </div>
             {settings.event_venue && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <MapPin size={15} style={{ color: '#00d4ff' }} />
-                <span style={{ color: '#e8eaf6', fontFamily: 'JetBrains Mono', fontSize: '0.85rem' }}>{settings.event_venue}</span>
+              <div className="flex items-center gap-2 text-gray-600 font-medium bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-100">
+                <MapPin className="w-5 h-5 text-primary-500" />
+                <span>{settings.event_venue}</span>
               </div>
             )}
           </div>
         )}
       </section>
 
-      <section style={{ padding: '2rem 2rem 6rem' }}>
-        <div style={{ maxWidth: 900, margin: '0 auto', display: 'grid', gap: '1.25rem' }}>
+      <section className="px-6 pb-32 flex-1 relative">
+        <div className="max-w-4xl mx-auto">
           {loading ? (
-            <p style={{ color: '#8892b0', fontFamily: 'JetBrains Mono', fontSize: '0.85rem' }}>Loading events...</p>
+             <div className="flex flex-col items-center justify-center py-20 text-gray-500">
+               <Loader2 className="w-10 h-10 text-primary-500 animate-spin mb-4" />
+               <p className="font-medium">Loading events...</p>
+             </div>
           ) : events.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '4rem', color: '#8892b0' }}>
-              <Calendar size={48} style={{ color: '#8892b0', marginBottom: '1rem' }} />
-              <p style={{ fontFamily: 'JetBrains Mono', fontSize: '0.85rem' }}>Events will be announced soon.</p>
-            </div>
-          ) : events.map((ev, i) => {
-            const isPast = ev.date && new Date(ev.date) < new Date();
-            return (
-              <div key={ev.id} className="glass" style={{ padding: '2rem', borderLeft: `3px solid ${isPast ? '#8892b0' : '#00d4ff'}`, opacity: isPast ? 0.6 : 1, display: 'flex', gap: '2rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
-                {/* Date block */}
-                <div style={{ textAlign: 'center', minWidth: 70, flexShrink: 0 }}>
-                  <div style={{ fontFamily: 'Bebas Neue', fontSize: '2.5rem', lineHeight: 1, color: isPast ? '#8892b0' : '#00d4ff', letterSpacing: 2 }}>
-                    {ev.date ? new Date(ev.date).getDate() : '—'}
-                  </div>
-                  <div style={{ fontFamily: 'Bebas Neue', fontSize: '0.85rem', letterSpacing: 2, color: '#8892b0' }}>
-                    {ev.date ? new Date(ev.date).toLocaleDateString('en-US', { month: 'short' }).toUpperCase() : ''}
-                  </div>
-                  {ev.date && <div style={{ color: '#8892b0', fontSize: '0.72rem', fontFamily: 'JetBrains Mono' }}>{new Date(ev.date).getFullYear()}</div>}
-                </div>
-
-                <div className="neon-divider" style={{ width: 1, height: 'auto', alignSelf: 'stretch', background: 'rgba(0,212,255,0.1)', flexShrink: 0 }} />
-
-                <div style={{ flex: 1 }}>
-                  <h3 style={{ fontFamily: 'Bebas Neue', fontSize: '1.4rem', letterSpacing: 2, color: '#e8eaf6', marginBottom: 8 }}>{ev.title}</h3>
-                  <p style={{ color: '#8892b0', lineHeight: 1.7, fontSize: '0.9rem', marginBottom: '1rem' }}>{ev.description}</p>
-                  <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
-                    {ev.time && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <Clock size={13} style={{ color: '#8892b0' }} />
-                        <span style={{ color: '#8892b0', fontSize: '0.82rem' }}>{ev.time}</span>
-                      </div>
-                    )}
-                    {ev.venue && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <MapPin size={13} style={{ color: '#8892b0' }} />
-                        <span style={{ color: '#8892b0', fontSize: '0.82rem' }}>{ev.venue}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
+            <div className="text-center py-24 bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center">
+              <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-6">
+                 <Calendar className="w-10 h-10 text-gray-400" />
               </div>
-            );
-          })}
+              <p className="text-gray-500 text-lg font-medium">Events will be announced soon.</p>
+            </div>
+          ) : (
+            <div className="relative">
+              {/* Vertical timeline line */}
+              <div className="hidden md:block absolute left-[120px] top-4 bottom-4 w-px bg-gray-200"></div>
+
+              <div className="space-y-8">
+                {events.map((ev, i) => {
+                  const isPast = ev.date && new Date(ev.date) < new Date();
+                  
+                  return (
+                    <motion.div 
+                      key={ev.id} 
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: i * 0.1 }}
+                      className={`relative flex flex-col md:flex-row gap-6 md:gap-12 p-8 md:p-10 bg-white rounded-2xl border transition-all ${
+                        isPast ? 'border-gray-200 opacity-60 bg-gray-50' : 'border-primary-100 shadow-sm hover:shadow-soft'
+                      }`}
+                    >
+                      {/* Timeline Dot (Desktop) */}
+                      {!isPast && (
+                         <div className="hidden md:flex absolute left-[108px] top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-primary-100 items-center justify-center z-10 border-4 border-white">
+                           <div className="w-2.5 h-2.5 rounded-full bg-primary-500"></div>
+                         </div>
+                      )}
+
+                      {/* Date block */}
+                      <div className="md:w-32 flex-shrink-0 flex md:flex-col items-center md:items-start gap-4 md:gap-0 justify-between md:justify-center border-b md:border-b-0 border-gray-100 pb-4 md:pb-0">
+                        <div className="text-center md:text-left">
+                          <div className={`font-sora font-bold text-5xl md:text-6xl ${isPast ? 'text-gray-400' : 'text-primary-600'} leading-none mb-2`}>
+                            {ev.date ? new Date(ev.date).getDate() : '—'}
+                          </div>
+                          <div className={`font-bold tracking-widest uppercase ${isPast ? 'text-gray-400' : 'text-gray-900'} text-sm`}>
+                            {ev.date ? new Date(ev.date).toLocaleDateString('en-US', { month: 'short' }) : ''}
+                          </div>
+                          {ev.date && (
+                             <div className="text-gray-500 text-xs mt-1 font-medium">
+                               {new Date(ev.date).getFullYear()}
+                             </div>
+                          )}
+                        </div>
+                        
+                        {/* Mobile Status Badge if next */}
+                        {!isPast && i === 0 && (
+                          <div className="md:hidden">
+                            <span className="badge-premium bg-primary-500 text-white border-transparent shadow-[0_0_15px_rgba(59,130,246,0.3)]">Next Event</span>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex-1">
+                        <h3 className={`font-sora font-bold text-2xl mb-4 ${isPast ? 'text-gray-700' : 'text-gray-900'}`}>{ev.title}</h3>
+                        <p className="text-gray-600 leading-relaxed mb-6 font-medium bg-gray-50/50 p-4 rounded-lg border border-gray-50">{ev.description}</p>
+                        
+                        <div className="flex flex-wrap gap-4">
+                          {ev.time && (
+                            <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-md border border-gray-100">
+                              <Clock className={`w-4 h-4 ${isPast ? 'text-gray-400' : 'text-primary-500'}`} />
+                              <span className="text-gray-600 text-sm font-medium">{ev.time}</span>
+                            </div>
+                          )}
+                          {ev.venue && (
+                            <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-md border border-gray-100">
+                              <MapPin className={`w-4 h-4 ${isPast ? 'text-gray-400' : 'text-primary-500'}`} />
+                              <span className="text-gray-600 text-sm font-medium">{ev.venue}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </section>
       <Footer />

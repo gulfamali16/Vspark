@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import {
   ChevronDown, Trophy, Code, Gamepad2, Palette,
   Zap, Brain, Star, ArrowRight, Users, Calendar,
@@ -10,20 +11,20 @@ import Footer from '../components/Footer';
 import ParticlesBg from '../components/ParticlesBg';
 
 const stats = [
-  { icon: Users,    value: '500+', label: 'Participants' },
-  { icon: Trophy,   value: '20+',  label: 'Awards' },
-  { icon: Calendar, value: '1',    label: 'Epic Day' },
-  { icon: Award,    value: '7+',   label: 'Competitions' },
+  { icon: Users, value: '500+', label: 'Participants' },
+  { icon: Trophy, value: '20+', label: 'Awards' },
+  { icon: Calendar, value: '1', label: 'Epic Day' },
+  { icon: Award, value: '7+', label: 'Competitions' },
 ];
 
 const compList = [
-  { icon: Code,     title: 'Speed Programming', fee: 300,  color: '#00d4ff' },
-  { icon: Gamepad2, title: 'E-Gaming',           fee: 200,  color: '#7c3aed' },
-  { icon: Code,     title: 'Web Development',    fee: 350,  color: '#ff6b00' },
-  { icon: Palette,  title: 'UI/UX Design',       fee: 250,  color: '#ffd700' },
-  { icon: Brain,    title: 'Prompt Engineering', fee: 200,  color: '#00ff88', isNew: true },
-  { icon: Star,     title: 'CS Quiz',            fee: 150,  color: '#ff3d77' },
-  { icon: Palette,  title: 'Poster Design',      fee: 200,  color: '#00d4ff' },
+  { icon: Code, title: 'Speed Programming', fee: 300, color: 'bg-primary-500' },
+  { icon: Gamepad2, title: 'E-Gaming', fee: 200, color: 'bg-indigo-500' },
+  { icon: Code, title: 'Web Development', fee: 350, color: 'bg-orange-500' },
+  { icon: Palette, title: 'UI/UX Design', fee: 250, color: 'bg-yellow-500' },
+  { icon: Brain, title: 'Prompt Engineering', fee: 200, color: 'bg-emerald-500', isNew: true },
+  { icon: Star, title: 'CS Quiz', fee: 150, color: 'bg-rose-500' },
+  { icon: Palette, title: 'Poster Design', fee: 200, color: 'bg-cyan-500' },
 ];
 
 // ── Team data ─────────────────────────────────────────────
@@ -33,7 +34,6 @@ const team = {
     role: 'Team Lead',
     image: '/images/abdullah-sir.png',
     linkedin: 'https://www.linkedin.com/in/abdullahwale/',
-    color: '#ffd700',
   },
   developers: [
     {
@@ -41,325 +41,251 @@ const team = {
       role: 'Developer',
       image: '/images/gulfam-ali.png',
       linkedin: 'https://www.linkedin.com/in/gulfam-a1i/',
-      color: '#00d4ff',
     },
     {
       name: 'Ali Hassan',
       role: 'Developer',
       image: '/images/ali-hassan.png',
       linkedin: 'https://www.linkedin.com/in/ali-hassan-45b9b53b0/',
-      color: '#7c3aed',
     },
   ],
 };
 
-// ── Team Member Card ──────────────────────────────────────
 function TeamCard({ member, isLead = false }) {
-  const [hovered, setHovered] = useState(false);
-
   return (
-    <div
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        display: 'flex', flexDirection: 'column', alignItems: 'center',
-        padding: isLead ? '2.5rem 2rem' : '2rem 1.5rem',
-        background: hovered
-          ? `linear-gradient(135deg, rgba(${member.color === '#ffd700' ? '255,215,0' : member.color === '#00d4ff' ? '0,212,255' : '124,58,237'},0.08) 0%, rgba(5,8,16,0.9) 100%)`
-          : 'rgba(255,255,255,0.02)',
-        border: `1px solid ${hovered ? member.color + '50' : 'rgba(0,212,255,0.12)'}`,
-        borderTop: `3px solid ${member.color}`,
-        transition: 'all 0.35s',
-        transform: hovered ? 'translateY(-6px)' : 'translateY(0)',
-        boxShadow: hovered ? `0 20px 60px ${member.color}18` : 'none',
-        position: 'relative',
-        overflow: 'hidden',
-      }}
+    <motion.div
+      whileHover={{ y: -8 }}
+      className={`relative overflow-hidden rounded-2xl bg-white border ${isLead ? 'border-primary-200' : 'border-gray-100'} shadow-sm hover:shadow-soft transition-all duration-300 flex flex-col items-center p-8`}
     >
-      {/* Background glow blob */}
-      <div style={{
-        position: 'absolute', top: -30, right: -30,
-        width: 120, height: 120, borderRadius: '50%',
-        background: `radial-gradient(circle, ${member.color}15 0%, transparent 70%)`,
-        transition: 'opacity 0.3s',
-        opacity: hovered ? 1 : 0,
-      }} />
+      <div className={`absolute top-0 left-0 w-full h-1.5 ${isLead ? 'bg-primary-500' : 'bg-gray-300'}`} />
 
-      {/* Lead badge */}
       {isLead && (
-        <div style={{
-          position: 'absolute', top: 14, right: 14,
-          padding: '2px 10px',
-          background: 'rgba(255,215,0,0.1)',
-          border: '1px solid rgba(255,215,0,0.35)',
-          color: '#ffd700',
-          fontSize: '0.6rem', fontFamily: 'JetBrains Mono', letterSpacing: 2,
-        }}>TEAM LEAD</div>
+        <span className="absolute top-4 right-4 badge-premium">
+          TEAM LEAD
+        </span>
       )}
 
-      {/* Profile image */}
-      <div style={{
-        width: isLead ? 110 : 88,
-        height: isLead ? 110 : 88,
-        borderRadius: '50%',
-        border: `3px solid ${member.color}60`,
-        boxShadow: hovered ? `0 0 24px ${member.color}40` : 'none',
-        overflow: 'hidden',
-        marginBottom: '1.25rem',
-        transition: 'all 0.3s',
-        background: 'rgba(255,255,255,0.04)',
-        flexShrink: 0,
-        position: 'relative',
-        zIndex: 1,
-      }}>
+      <div className={`w-28 h-28 rounded-full border-4 ${isLead ? 'border-primary-100' : 'border-gray-50'} overflow-hidden mb-6 flex-shrink-0 shadow-sm`}>
         <img
           src={member.image}
           alt={member.name}
-          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          className="w-full h-full object-cover"
           onError={e => {
             e.target.style.display = 'none';
-            e.target.parentElement.style.display = 'flex';
-            e.target.parentElement.style.alignItems = 'center';
-            e.target.parentElement.style.justifyContent = 'center';
-            e.target.parentElement.innerHTML = `<span style="font-family:Bebas Neue,cursive;font-size:2rem;color:${member.color}">${member.name.charAt(0)}</span>`;
+            e.target.parentElement.innerHTML = `<span class="flex h-full w-full items-center justify-center bg-gray-100 font-sora font-bold text-3xl text-primary-500">${member.name.charAt(0)}</span>`;
           }}
         />
       </div>
 
-      {/* Name */}
-      <h3 style={{
-        fontFamily: 'Bebas Neue,cursive',
-        fontSize: isLead ? '1.35rem' : '1.15rem',
-        letterSpacing: 2, color: '#e8eaf6',
-        marginBottom: 4, textAlign: 'center',
-        position: 'relative', zIndex: 1,
-      }}>{member.name}</h3>
+      <h3 className="font-sora font-bold text-xl text-gray-900 mb-1 text-center">
+        {member.name}
+      </h3>
+      <p className="text-sm font-semibold text-primary-600 tracking-wider uppercase mb-6">
+        {member.role}
+      </p>
 
-      {/* Role */}
-      <p style={{
-        color: member.color, fontSize: '0.75rem',
-        fontFamily: 'JetBrains Mono', letterSpacing: 2,
-        textTransform: 'uppercase', marginBottom: '1.25rem',
-        position: 'relative', zIndex: 1,
-      }}>{member.role}</p>
-
-      {/* LinkedIn button */}
       <a
         href={member.linkedin}
         target="_blank"
         rel="noreferrer"
-        style={{
-          display: 'flex', alignItems: 'center', gap: 7,
-          padding: '7px 18px',
-          background: hovered ? `${member.color}18` : 'transparent',
-          border: `1px solid ${member.color}45`,
-          color: member.color,
-          textDecoration: 'none',
-          fontSize: '0.78rem', fontFamily: 'Rajdhani', fontWeight: 700,
-          letterSpacing: 1, transition: 'all 0.2s',
-          position: 'relative', zIndex: 1,
-        }}
-        onMouseEnter={e => { e.currentTarget.style.background = `${member.color}30`; }}
-        onMouseLeave={e => { e.currentTarget.style.background = hovered ? `${member.color}18` : 'transparent'; }}
+        className="inline-flex items-center gap-2 px-5 py-2 rounded-full border border-gray-200 text-gray-600 hover:text-primary-600 hover:border-primary-200 hover:bg-primary-50 transition-colors text-sm font-medium"
       >
-        <Linkedin size={13} /> LinkedIn
+        <Linkedin size={16} /> LinkedIn
       </a>
-    </div>
+    </motion.div>
   );
 }
 
 export default function Home() {
-  const [vis, setVis] = useState(false);
-  useEffect(() => { setTimeout(() => setVis(true), 100); }, []);
-
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', overflowX: 'hidden' }}>
+    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
       <ParticlesBg />
       <Navbar />
 
       {/* ── HERO ─────────────────────────────────────────── */}
-      <section style={{
-        minHeight: '100vh',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        position: 'relative',
-        padding: '8rem 1.5rem 4rem',
-        textAlign: 'center',
-        overflow: 'hidden',
-        background: 'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(0,212,255,0.07) 0%, transparent 70%)',
-      }}>
-        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-          {[1, 2, 3].map(i => (
-            <div key={i} style={{
-              position: 'absolute', top: '50%', left: '50%',
-              width: i * 260, height: i * 260,
-              border: `1px solid rgba(0,212,255,${0.07 - i * 0.02})`,
-              borderRadius: '50%',
-              transform: 'translate(-50%,-50%)',
-              animation: `rotate ${15 + i * 5}s linear infinite ${i % 2 ? 'reverse' : ''}`,
-            }} />
-          ))}
+      <section className="relative min-h-screen flex items-center justify-center px-6 pt-32 pb-20 text-center overflow-hidden">
+        {/* Background Image with Overlay */}
+        <div className="absolute inset-0 z-0 scale-105 animate-slow-zoom">
+          <div className="absolute inset-0 bg-black/60 z-10" /> {/* Dark Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-transparent to-gray-50 z-15" /> {/* Bottom Fade */}
+          <img
+            src="/images/hero slider.jpg"
+            alt="Hero Background"
+            className="w-full h-full object-cover"
+            onError={e => { e.target.style.display = 'none'; }}
+          />
         </div>
 
-        <div style={{ position: 'relative', zIndex: 1, maxWidth: 900, width: '100%' }}>
-          <h1 style={{
-            fontFamily: 'Bebas Neue,cursive',
-            fontSize: 'clamp(5rem,20vw,12rem)',
-            lineHeight: 0.88, letterSpacing: '0.02em', marginBottom: '0.5rem',
-            opacity: vis ? 1 : 0,
-            transform: vis ? 'translateY(0)' : 'translateY(40px)',
-            transition: 'all 1s ease 0.2s',
-          }}>
-            <span style={{ display: 'block', background: 'linear-gradient(135deg,#fff 30%,#00d4ff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>V</span>
-            <span style={{ display: 'block', background: 'linear-gradient(135deg,#00d4ff,#7c3aed)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>SPARK</span>
-          </h1>
+        <div className="relative z-20 max-w-5xl mx-auto w-full">
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={{
+              hidden: { opacity: 0 },
+              visible: {
+                opacity: 1,
+                transition: { staggerChildren: 0.2, delayChildren: 0.3 }
+              }
+            }}
+          >
+            <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.8 } } }}>
+              <h1 className="font-sora font-black text-6xl md:text-8xl lg:text-9xl tracking-tighter mb-4 text-white leading-none drop-shadow-2xl">
+                <span className="text-primary-500">V</span>SPARK
+              </h1>
+            </motion.div>
 
-          <div style={{ opacity: vis ? 1 : 0, transition: 'opacity 0.8s', marginBottom: '1.25rem' }}>
-            <span className="tag">COMSATS University Islamabad • Vehari Campus</span>
-          </div>
+            <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.8 } } }} className="mb-8">
+              <span className="inline-block px-5 py-2 bg-primary-600/20 backdrop-blur-md border border-primary-400/30 text-primary-200 rounded-full text-xs md:text-sm font-bold tracking-widest uppercase shadow-lg shadow-black/20">
+                COMSATS University Islamabad • Vehari Campus
+              </span>
+            </motion.div>
 
-          <p style={{
-            color: '#8892b0', maxWidth: 560, margin: '1.25rem auto 2.5rem',
-            lineHeight: 1.8, fontSize: 'clamp(0.9rem,2.5vw,1.1rem)', fontWeight: 500,
-            opacity: vis ? 1 : 0, transition: 'all 0.8s ease 0.6s', padding: '0 0.5rem',
-          }}>
-            National-level coding competition and innovation showcase —{' '}
-            <span style={{ color: '#00d4ff' }}>COMSATS Vehari Campus</span>.
-            Speed programming, e-gaming, web dev, AI prompting and more.
-          </p>
+            <motion.p variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.8 } } }} className="text-gray-200 text-lg md:text-2xl max-w-3xl mx-auto mb-12 leading-relaxed font-medium drop-shadow-lg px-4">
+              National-level coding competition and innovation showcase.
+              <span className="block mt-2 text-primary-300">Speed programming, e-gaming, web dev, AI prompting and more.</span>
+            </motion.p>
 
-          <div style={{
-            display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap',
-            opacity: vis ? 1 : 0, transition: 'all 0.8s ease 0.8s', padding: '0 1rem',
-          }}>
-            <Link to="/register"     className="btn-neon"            style={{ textDecoration: 'none', fontSize: '1rem', padding: '13px 32px' }}>Register Now</Link>
-            <Link to="/competitions" className="btn-neon btn-orange" style={{ textDecoration: 'none', fontSize: '1rem', padding: '13px 32px' }}>Explore Events</Link>
-          </div>
+            <motion.div variants={{ hidden: { opacity: 0, scale: 0.9 }, visible: { opacity: 1, scale: 1, transition: { duration: 0.5 } } }} className="flex flex-col sm:flex-row gap-5 justify-center items-center">
+              <Link to="/register" className="w-full sm:w-auto btn-primary px-10 py-5 text-xl bg-primary-600 hover:bg-primary-500 shadow-xl shadow-primary-900/30">
+                Register Now
+              </Link>
+              <Link to="/competitions" className="w-full sm:w-auto px-10 py-5 text-xl font-sora font-bold text-white border-2 border-white/20 hover:border-white/50 hover:bg-white/10 backdrop-blur-sm rounded-2xl transition-all">
+                Explore Events
+              </Link>
+            </motion.div>
+          </motion.div>
 
-          <div style={{ marginTop: '3.5rem', animation: 'float 3s ease-in-out infinite' }}>
-            <ChevronDown size={26} style={{ color: 'rgba(0,212,255,0.4)' }} />
-          </div>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.5, duration: 1 }}
+            className="absolute -bottom-24 left-1/2 -translate-x-1/2 animate-bounce flex flex-col items-center text-white/40"
+          >
+            <ChevronDown size={32} />
+          </motion.div>
         </div>
       </section>
 
       {/* ── STATS ────────────────────────────────────────── */}
-      <section style={{ padding: '3rem 1.5rem', background: 'rgba(0,212,255,0.02)', borderTop: '1px solid rgba(0,212,255,0.08)', borderBottom: '1px solid rgba(0,212,255,0.08)' }}>
-        <div style={{ maxWidth: 860, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: '1.5rem 1rem' }}>
+      <section className="py-16 bg-white border-y border-gray-100 relative z-10">
+        <div className="max-w-5xl mx-auto px-6 grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
           {stats.map(({ icon: Icon, value, label }, i) => (
-            <div key={i} style={{ textAlign: 'center', padding: '0.5rem' }}>
-              <Icon size={24} style={{ color: '#00d4ff', marginBottom: 8 }} />
-              <div style={{ fontFamily: 'Bebas Neue,cursive', fontSize: 'clamp(2rem,8vw,3rem)', color: '#fff', lineHeight: 1, letterSpacing: 2 }}>{value}</div>
-              <div style={{ color: '#8892b0', fontWeight: 600, letterSpacing: 2, textTransform: 'uppercase', fontSize: '0.75rem', marginTop: 4 }}>{label}</div>
-            </div>
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1 }}
+              className="text-center"
+            >
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary-50 text-primary-600 mb-4 shadow-sm">
+                <Icon size={28} />
+              </div>
+              <div className="font-sora font-bold text-4xl md:text-5xl text-gray-900 mb-2">{value}</div>
+              <div className="text-xs font-bold text-gray-500 uppercase tracking-widest">{label}</div>
+            </motion.div>
           ))}
         </div>
       </section>
 
       {/* ── COMPETITIONS PREVIEW ─────────────────────────── */}
-      <section style={{ padding: '5rem 1.5rem', position: 'relative', zIndex: 1 }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-            <span className="tag" style={{ marginBottom: '1rem', display: 'inline-block' }}>What to Expect</span>
-            <h2 className="section-title" style={{ display: 'block' }}>Competitions</h2>
-            <p style={{ color: '#8892b0', maxWidth: 480, margin: '0.75rem auto 0', lineHeight: 1.7, fontSize: '0.95rem', padding: '0 1rem' }}>
+      <section className="py-24 px-6 relative z-10">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <span className="badge-premium mb-4">What to Expect</span>
+            <h2 className="font-sora font-bold text-4xl md:text-5xl text-gray-900 mb-4">Competitions</h2>
+            <p className="text-gray-600 max-w-2xl mx-auto text-lg">
               Seven high-stakes categories — each with prizes and internship opportunities
             </p>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))', gap: '1rem' }}>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {compList.map(({ icon: Icon, title, fee, color, isNew }, i) => (
-              <div key={i} className="glass" style={{ padding: '1.5rem', cursor: 'pointer', transition: 'all 0.3s', position: 'relative', overflow: 'hidden' }}
-                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.borderColor = color; }}
-                onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'rgba(0,212,255,0.15)'; }}>
-                <div style={{ position: 'absolute', top: -20, right: -20, width: 80, height: 80, borderRadius: '50%', background: `radial-gradient(circle,${color}20 0%,transparent 70%)` }} />
-                <div style={{ width: 40, height: 40, border: `1px solid ${color}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '0.9rem' }}>
-                  <Icon size={18} style={{ color }} />
-                </div>
-                <h3 style={{ fontFamily: 'Bebas Neue,cursive', fontSize: '1.2rem', letterSpacing: 2, color: '#e8eaf6', marginBottom: 4 }}>{title}</h3>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
-                  <span style={{ fontFamily: 'Bebas Neue', fontSize: '1.1rem', color: '#ffd700', letterSpacing: 1 }}>PKR {fee}</span>
-                  {isNew && <span style={{ padding: '1px 7px', background: `${color}20`, color, fontSize: '0.62rem', fontFamily: 'JetBrains Mono', border: `1px solid ${color}40` }}>NEW</span>}
-                </div>
-              </div>
+              <Link to="/competitions" key={i} className="group flex">
+                <motion.div
+                  whileHover={{ y: -5 }}
+                  className="card-premium p-6 w-full relative flex flex-col justify-between"
+                >
+                  <div className={`absolute -top-10 -right-10 w-32 h-32 rounded-full ${color} opacity-10 group-hover:scale-150 transition-transform duration-500 ease-out`} />
+
+                  <div>
+                    <div className="w-12 h-12 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center mb-6 shadow-sm group-hover:bg-primary-50 transition-colors">
+                      <Icon size={24} className="text-primary-600" />
+                    </div>
+
+                    <h3 className="font-sora font-bold text-xl text-gray-900 mb-4 line-clamp-2">
+                      {title}
+                    </h3>
+                  </div>
+
+                  <div className="flex items-center justify-between border-t border-gray-50 pt-4 mt-4">
+                    <span className="font-bold text-gray-900">PKR {fee}</span>
+                    {isNew && <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded border border-emerald-200">NEW</span>}
+                  </div>
+                </motion.div>
+              </Link>
             ))}
           </div>
-          <div style={{ textAlign: 'center', marginTop: '2.5rem' }}>
-            <Link to="/competitions" className="btn-neon" style={{ textDecoration: 'none', fontSize: '0.95rem' }}>
-              View All Details <ArrowRight size={13} style={{ display: 'inline', marginLeft: 6 }} />
+
+          <div className="text-center mt-12">
+            <Link to="/competitions" className="inline-flex items-center text-primary-600 font-semibold hover:text-primary-700 hover:gap-3 transition-all">
+              View All Details <ArrowRight size={18} className="ml-2" />
             </Link>
           </div>
         </div>
       </section>
 
       {/* ── INTERNSHIP ───────────────────────────────────── */}
-      <section style={{ padding: '5rem 1.5rem', background: 'linear-gradient(135deg,rgba(0,212,255,0.04) 0%,rgba(124,58,237,0.04) 100%)', borderTop: '1px solid rgba(0,212,255,0.1)', borderBottom: '1px solid rgba(0,212,255,0.1)' }}>
-        <div style={{ maxWidth: 720, margin: '0 auto', textAlign: 'center' }}>
-          <Zap size={40} style={{ color: '#ffd700', marginBottom: '1.25rem' }} />
-          <h2 className="section-title" style={{ display: 'block', marginBottom: '1rem' }}>Internship Program</h2>
-          <p style={{ color: '#8892b0', fontSize: '1rem', lineHeight: 1.8, marginBottom: '2.5rem', padding: '0 0.5rem' }}>
-            Top performers unlock <span style={{ color: '#ffd700', fontWeight: 700 }}>exclusive internship opportunities</span>{' '}
+      <section className="py-24 px-6 bg-primary-50/50 border-y border-primary-100 relative overflow-hidden">
+        <div className="absolute top-0 right-0 p-12 opacity-5">
+          <Zap size={200} />
+        </div>
+        <div className="max-w-3xl mx-auto text-center relative z-10">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-white shadow-soft text-yellow-500 mb-8 mx-auto -translate-y-4">
+            <Zap size={40} />
+          </div>
+          <h2 className="font-sora font-bold text-4xl md:text-5xl text-gray-900 mb-6">Internship Program</h2>
+          <p className="text-gray-600 text-lg md:text-xl leading-relaxed mb-10 max-w-2xl mx-auto">
+            Top performers unlock <span className="font-bold text-primary-600">exclusive internship opportunities</span>{' '}
             with industry partners. Your performance determines your career tomorrow.
           </p>
-          <Link to="/register" className="btn-neon" style={{ textDecoration: 'none', borderColor: '#ffd700', color: '#ffd700' }}>Register & Compete</Link>
+          <Link to="/register" className="btn-primary shadow-[0_0_40px_rgba(59,130,246,0.3)]">Register & Compete</Link>
         </div>
       </section>
 
       {/* ── DEVELOPMENT TEAM ─────────────────────────────── */}
-      <section style={{ padding: '6rem 1.5rem', position: 'relative', overflow: 'hidden' }}>
-        {/* Background */}
-        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at center,rgba(0,212,255,0.04) 0%,transparent 70%)', pointerEvents: 'none' }} />
-
-        <div style={{ maxWidth: 1000, margin: '0 auto', position: 'relative', zIndex: 1 }}>
-          {/* Heading */}
-          <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
-            <span className="tag" style={{ marginBottom: '1rem', display: 'inline-block' }}>Built With ❤️</span>
-            <h2 className="section-title" style={{ display: 'block' }}>Development Team</h2>
-            <p style={{ color: '#8892b0', maxWidth: 440, margin: '0.75rem auto 0', lineHeight: 1.7, fontSize: '0.92rem' }}>
+      <section className="py-24 px-6 relative">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <span className="badge-premium mb-4">Built With 💙</span>
+            <h2 className="font-sora font-bold text-4xl md:text-5xl text-gray-900 mb-4">Development Team</h2>
+            <p className="text-gray-600 max-w-2xl mx-auto text-lg">
               The minds behind VSpark — building the platform that powers the competition
             </p>
           </div>
 
-          {/* Desktop layout: Dev | Lead | Dev */}
-          <div style={{ display: 'none' }} className="team-desktop">
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr 1fr', gap: '1.5rem', alignItems: 'start' }}>
-              <TeamCard member={team.developers[0]} />
-              <TeamCard member={team.lead} isLead />
-              <TeamCard member={team.developers[1]} />
-            </div>
+          <div className="hidden lg:grid grid-cols-3 gap-8 items-center">
+            <div className="translate-y-8"><TeamCard member={team.developers[0]} /></div>
+            <div className="-translate-y-4 relative z-10"><TeamCard member={team.lead} isLead /></div>
+            <div className="translate-y-8"><TeamCard member={team.developers[1]} /></div>
           </div>
 
-          {/* Mobile layout: Lead on top, devs below */}
-          <div className="team-mobile">
-            <div style={{ maxWidth: 320, margin: '0 auto 1.5rem' }}>
-              <TeamCard member={team.lead} isLead />
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: '1rem', maxWidth: 680, margin: '0 auto' }}>
-              {team.developers.map((dev, i) => (
-                <TeamCard key={i} member={dev} />
-              ))}
-            </div>
+          <div className="lg:hidden flex flex-col gap-8 max-w-sm mx-auto">
+            <TeamCard member={team.lead} isLead />
+            <TeamCard member={team.developers[0]} />
+            <TeamCard member={team.developers[1]} />
           </div>
         </div>
-
-        <style>{`
-          @media (min-width: 768px) {
-            .team-desktop { display: block !important; }
-            .team-mobile  { display: none   !important; }
-          }
-          @media (max-width: 767px) {
-            .team-desktop { display: none   !important; }
-            .team-mobile  { display: block  !important; }
-          }
-        `}</style>
       </section>
 
       {/* ── CTA ──────────────────────────────────────────── */}
-      <section style={{ padding: '5rem 1.5rem', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at center,rgba(124,58,237,0.1) 0%,transparent 70%)' }} />
-        <div style={{ position: 'relative', zIndex: 1 }}>
-          <h2 style={{ fontFamily: 'Bebas Neue,cursive', fontSize: 'clamp(1.8rem,6vw,3.5rem)', letterSpacing: 3, color: '#e8eaf6', marginBottom: '0.75rem', padding: '0 1rem' }}>
-            Ready to <span style={{ color: '#00d4ff' }}>Ignite</span> Your Potential?
+      <section className="py-24 px-6 bg-gradient-to-b from-transparent to-primary-50 relative z-10">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="font-sora font-black text-4xl md:text-6xl text-gray-900 mb-6 tracking-tight">
+            Ready to <span className="text-primary-600">Ignite</span> Your Potential?
           </h2>
-          <p style={{ color: '#8892b0', marginBottom: '2.5rem', fontSize: '0.95rem' }}>Register now and secure your spot at VSpark</p>
-          <Link to="/register" className="btn-neon" style={{ textDecoration: 'none', fontSize: '1rem', padding: '14px 40px' }}>Register Now</Link>
+          <p className="text-gray-600 text-xl mb-10">Register now and secure your spot at VSpark</p>
+          <Link to="/register" className="btn-primary px-10 py-5 text-lg">Register Now</Link>
         </div>
       </section>
 

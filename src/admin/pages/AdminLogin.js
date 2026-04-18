@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Lock, Mail, Eye, EyeOff, Shield } from 'lucide-react';
+import { Lock, Mail, Eye, EyeOff, Shield, AlertCircle } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { supabase } from '../../lib/supabase';
 import toast from 'react-hot-toast';
 
@@ -21,16 +22,10 @@ export default function AdminLogin() {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) return;
       const email = session.user.email;
-
-      // Check if admin
       if (ADMIN_EMAILS.includes(email)) { navigate('/admin'); return; }
-
-      // Check if assistant
       const { data: assistant } = await supabase
         .from('admin_assistants').select('id').eq('email', email).eq('is_active', true).maybeSingle();
       if (assistant) { navigate('/admin'); return; }
-
-      // Otherwise sign out (student accidentally here)
       await supabase.auth.signOut();
     });
   }, [navigate]);
@@ -41,26 +36,14 @@ export default function AdminLogin() {
     e.preventDefault();
     if (!form.email || !form.password) { toast.error('Fill all fields'); return; }
     setLoading(true);
-
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: form.email,
-        password: form.password,
-      });
+      const { data, error } = await supabase.auth.signInWithPassword({ email: form.email, password: form.password });
       if (error) throw error;
-
       const email = data.user.email;
 
-      // ── Check if this is a student account ──────────────────
       const { data: studentReg } = await supabase
-        .from('registration_requests')
-        .select('id')
-        .eq('email', email)
-        .eq('status', 'approved')
-        .maybeSingle();
-
+        .from('registration_requests').select('id').eq('email', email).eq('status', 'approved').maybeSingle();
       if (studentReg) {
-        // Sign them out from here and tell them where to go
         await supabase.auth.signOut();
         toast.error('This is the admin panel. Please use the participant login.');
         setTimeout(() => navigate('/login'), 1500);
@@ -68,7 +51,6 @@ export default function AdminLogin() {
         return;
       }
 
-      // ── Check if admin ───────────────────────────────────────
       if (ADMIN_EMAILS.includes(email)) {
         sessionStorage.setItem('vspark_role', 'admin');
         sessionStorage.setItem('vspark_name', 'Admin');
@@ -79,14 +61,8 @@ export default function AdminLogin() {
         return;
       }
 
-      // ── Check if assistant ───────────────────────────────────
       const { data: assistant } = await supabase
-        .from('admin_assistants')
-        .select('*')
-        .eq('email', email)
-        .eq('is_active', true)
-        .maybeSingle();
-
+        .from('admin_assistants').select('*').eq('email', email).eq('is_active', true).maybeSingle();
       if (assistant) {
         sessionStorage.setItem('vspark_role', 'assistant');
         sessionStorage.setItem('vspark_name', assistant.name);
@@ -97,101 +73,88 @@ export default function AdminLogin() {
         return;
       }
 
-      // ── Not authorized ───────────────────────────────────────
       await supabase.auth.signOut();
       toast.error('You are not authorized to access the admin panel.');
-
     } catch (err) {
       toast.error('Invalid email or password.');
     }
-
     setLoading(false);
   };
 
   return (
-    <div style={{
-      minHeight: '100vh', background: '#050810',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: '2rem',
-      backgroundImage: 'linear-gradient(rgba(0,212,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,0.03) 1px,transparent 1px)',
-      backgroundSize: '50px 50px',
-    }}>
-      <div style={{ width: '100%', maxWidth: 400 }}>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+      {/* Background blob */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+        <div className="absolute top-[-30%] right-[-10%] w-[600px] h-[600px] rounded-full bg-primary-100/40 blur-3xl" />
+        <div className="absolute bottom-[-20%] left-[-5%] w-[400px] h-[400px] rounded-full bg-blue-100/30 blur-3xl" />
+      </div>
 
+      <div className="w-full max-w-md relative z-10">
         {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-          <div style={{ fontFamily: 'Bebas Neue,cursive', fontSize: '2rem', letterSpacing: 4, marginBottom: 4 }}>
-            V<span style={{ color: '#00d4ff' }}>SPARK</span>
+        <div className="text-center mb-10">
+          <div className="font-sora font-black text-4xl tracking-tighter text-gray-900 mb-3">
+            <span className="text-primary-600">V</span>SPARK
           </div>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '4px 14px', background: 'rgba(0,212,255,0.06)', border: '1px solid rgba(0,212,255,0.2)' }}>
-            <Shield size={12} style={{ color: '#00d4ff' }} />
-            <span style={{ fontFamily: 'JetBrains Mono', fontSize: '0.65rem', color: '#00d4ff', letterSpacing: 3 }}>ADMIN ACCESS ONLY</span>
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-primary-50 border border-primary-200 rounded-full">
+            <Shield size={14} className="text-primary-600" />
+            <span className="font-sora font-bold text-xs text-primary-600 tracking-widest uppercase">Admin Access Only</span>
           </div>
         </div>
 
         {/* Card */}
-        <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(0,212,255,0.15)', padding: '2.5rem' }}>
-          <h1 style={{ fontFamily: 'Bebas Neue,cursive', fontSize: '1.8rem', letterSpacing: 3, color: '#e8eaf6', marginBottom: '0.25rem', textAlign: 'center' }}>
-            Admin Login
-          </h1>
-          <p style={{ color: '#8892b0', fontSize: '0.82rem', textAlign: 'center', marginBottom: '2rem', fontFamily: 'Rajdhani' }}>
-            For admin and assistant accounts only
-          </p>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-3xl shadow-soft border border-gray-100 p-8 md:p-10 mb-6"
+        >
+          <h1 className="font-sora font-black text-2xl text-gray-900 text-center mb-1">Admin Login</h1>
+          <p className="text-gray-500 text-sm text-center mb-8 font-medium">For admin and assistant accounts only</p>
 
           <form onSubmit={submit}>
-            <div style={{ marginBottom: '1.25rem' }}>
-              <label style={{ display: 'block', fontFamily: 'Bebas Neue', letterSpacing: 2, color: '#8892b0', marginBottom: 6, fontSize: '0.82rem' }}>Email</label>
-              <div style={{ position: 'relative' }}>
-                <Mail size={14} style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', color: '#00d4ff' }} />
+            <div className="mb-5">
+              <label className="block font-sora font-bold text-xs text-gray-500 uppercase tracking-widest mb-2">Email</label>
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
                   name="email" type="email" value={form.email} onChange={handle}
                   placeholder="admin@email.com"
-                  style={{ width: '100%', padding: '12px 14px 12px 38px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(0,212,255,0.2)', color: '#e8eaf6', fontFamily: 'Rajdhani', fontSize: '0.95rem', outline: 'none', transition: 'border-color 0.2s' }}
-                  onFocus={e => e.target.style.borderColor = '#00d4ff'}
-                  onBlur={e => e.target.style.borderColor = 'rgba(0,212,255,0.2)'}
+                  className="input-premium pl-12"
                 />
               </div>
             </div>
 
-            <div style={{ marginBottom: '2rem' }}>
-              <label style={{ display: 'block', fontFamily: 'Bebas Neue', letterSpacing: 2, color: '#8892b0', marginBottom: 6, fontSize: '0.82rem' }}>Password</label>
-              <div style={{ position: 'relative' }}>
-                <Lock size={14} style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', color: '#00d4ff' }} />
+            <div className="mb-8">
+              <label className="block font-sora font-bold text-xs text-gray-500 uppercase tracking-widest mb-2">Password</label>
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
                   name="password" type={show ? 'text' : 'password'} value={form.password} onChange={handle}
                   placeholder="••••••••"
-                  style={{ width: '100%', padding: '12px 42px 12px 38px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(0,212,255,0.2)', color: '#e8eaf6', fontFamily: 'Rajdhani', fontSize: '0.95rem', outline: 'none', transition: 'border-color 0.2s' }}
-                  onFocus={e => e.target.style.borderColor = '#00d4ff'}
-                  onBlur={e => e.target.style.borderColor = 'rgba(0,212,255,0.2)'}
+                  className="input-premium pl-12 pr-12"
                 />
-                <button type="button" onClick={() => setShow(!show)} style={{ position: 'absolute', right: 13, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#8892b0', cursor: 'pointer' }}>
-                  {show ? <EyeOff size={15} /> : <Eye size={15} />}
+                <button type="button" onClick={() => setShow(!show)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 focus:outline-none">
+                  {show ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
             </div>
 
-            <button type="submit" disabled={loading} style={{
-              width: '100%', padding: '13px',
-              background: loading ? 'rgba(0,212,255,0.08)' : 'transparent',
-              border: '2px solid #00d4ff', color: '#00d4ff',
-              fontFamily: 'Bebas Neue', fontSize: '1.1rem', letterSpacing: 3,
-              cursor: loading ? 'not-allowed' : 'pointer',
-              transition: 'all 0.3s', opacity: loading ? 0.7 : 1,
-            }}
-              onMouseEnter={e => { if (!loading) { e.currentTarget.style.background = '#00d4ff'; e.currentTarget.style.color = '#050810'; } }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#00d4ff'; }}
+            <button type="submit" disabled={loading}
+              className={`w-full btn-primary py-4 text-base ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
             >
-              {loading ? 'Signing In...' : 'Sign In'}
+              {loading ? 'Signing In...' : 'Sign In to Admin Panel'}
             </button>
           </form>
-        </div>
+        </motion.div>
 
-        {/* Link to public login for students */}
-        <div style={{ marginTop: '1.25rem', padding: '0.9rem 1.25rem', background: 'rgba(255,215,0,0.04)', border: '1px solid rgba(255,215,0,0.15)', textAlign: 'center' }}>
-          <p style={{ color: '#8892b0', fontSize: '0.82rem', marginBottom: 6 }}>Are you a registered participant?</p>
-          <Link to="/login" style={{ color: '#ffd700', fontSize: '0.88rem', textDecoration: 'none', fontWeight: 600, fontFamily: 'Rajdhani' }}>
-            Go to Participant Login →
-          </Link>
+        {/* Link to participant login */}
+        <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-5 flex items-start gap-3">
+          <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-yellow-800 text-sm font-medium mb-1">Are you a registered participant?</p>
+            <Link to="/login" className="text-yellow-700 font-bold text-sm hover:text-yellow-900 hover:underline">
+              Go to Participant Login →
+            </Link>
+          </div>
         </div>
       </div>
     </div>

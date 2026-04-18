@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, X, Save } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Save, FileText } from 'lucide-react';
 import AdminSidebar from '../components/AdminSidebar';
 import { supabase } from '../../lib/supabase';
 import toast from 'react-hot-toast';
 
-const empty = { title:'', content:'', image_url:'' };
+const empty = { title: '', content: '', image_url: '', author: '' };
 
 export default function AdminBlogs() {
   const [blogs, setBlogs] = useState([]);
@@ -12,8 +12,8 @@ export default function AdminBlogs() {
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(empty);
 
-  const load = () => supabase.from('blogs').select('*').order('created_at',{ascending:false}).then(({data})=>setBlogs(data||[]));
-  useEffect(()=>{ load(); },[]);
+  const load = () => supabase.from('blogs').select('*').order('created_at', { ascending: false }).then(({ data }) => setBlogs(data || []));
+  useEffect(() => { load(); }, []);
 
   const openNew = () => { setForm(empty); setEditing(null); setModal(true); };
   const openEdit = (b) => { setForm(b); setEditing(b.id); setModal(true); };
@@ -35,33 +35,46 @@ export default function AdminBlogs() {
     toast.success('Deleted'); load();
   };
 
-  const inputSt = { width:'100%', padding:'12px', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(0,212,255,0.2)', color:'#e8eaf6', fontFamily:'Rajdhani,sans-serif', fontSize:'0.95rem', outline:'none', marginBottom:'1rem' };
+  const InputField = ({ label, field, type = 'text', placeholder = '' }) => (
+    <div className="mb-5">
+      <label className="block font-sora font-bold text-xs text-gray-500 uppercase tracking-widest mb-2">{label}</label>
+      <input type={type} value={form[field] || ''} onChange={e => setForm({ ...form, [field]: e.target.value })} placeholder={placeholder} className="admin-input" />
+    </div>
+  );
 
   return (
-    <div style={{ display:'flex', minHeight:'100vh', background:'var(--bg)' }}>
+    <div className="admin-layout">
       <AdminSidebar />
-      <main style={{ marginLeft:240, flex:1, padding:'2.5rem' }}>
-        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'2rem' }}>
-          <h1 style={{ fontFamily:'Bebas Neue', fontSize:'2.5rem', letterSpacing:3, color:'#e8eaf6' }}>Blog Posts</h1>
-          <button className="btn-neon" onClick={openNew} style={{ display:'flex', alignItems:'center', gap:8, cursor:'pointer' }}>
-            <Plus size={16}/> New Post
+      <main className="admin-main">
+        <div className="admin-page-header flex justify-between items-center">
+          <div>
+            <h1 className="admin-page-title">Blog Posts</h1>
+            <p className="text-gray-500 text-sm font-medium mt-1">Create and manage your articles and news</p>
+          </div>
+          <button onClick={openNew} className="btn-primary text-sm">
+            <Plus size={16} /> New Post
           </button>
         </div>
-        <div style={{ display:'grid', gap:'1rem' }}>
-          {blogs.length === 0 && <p style={{ color:'#8892b0', fontFamily:'JetBrains Mono', fontSize:'0.85rem' }}>No blog posts yet.</p>}
+
+        <div className="space-y-4">
+          {blogs.length === 0 && (
+            <div className="admin-card text-center py-16">
+              <FileText size={40} className="text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500 font-medium">No blog posts yet.</p>
+            </div>
+          )}
           {blogs.map(b => (
-            <div key={b.id} className="glass" style={{ padding:'1.5rem', display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:'1rem' }}>
-              <div style={{ flex:1 }}>
-                <h3 style={{ fontFamily:'Bebas Neue', fontSize:'1.3rem', letterSpacing:2, color:'#e8eaf6', marginBottom:4 }}>{b.title}</h3>
-                <p style={{ color:'#8892b0', fontSize:'0.85rem' }}>{new Date(b.created_at).toLocaleDateString()} • {b.content.substring(0,80)}...</p>
+            <div key={b.id} className="admin-card flex justify-between items-center flex-wrap gap-4">
+              <div className="flex items-start gap-4 flex-1">
+                {b.image_url && <img src={b.image_url} alt={b.title} className="w-16 h-16 rounded-xl object-cover border border-gray-100 flex-shrink-0" onError={e => e.target.style.display = 'none'} />}
+                <div>
+                  <h3 className="font-sora font-bold text-gray-900 text-base mb-1">{b.title}</h3>
+                  <p className="text-gray-500 text-sm">{new Date(b.created_at).toLocaleDateString()} · {b.content?.substring(0, 80)}...</p>
+                </div>
               </div>
-              <div style={{ display:'flex', gap:8 }}>
-                <button onClick={()=>openEdit(b)} style={{ padding:'8px 14px', background:'rgba(0,212,255,0.1)', border:'1px solid rgba(0,212,255,0.3)', color:'#00d4ff', cursor:'pointer', display:'flex', alignItems:'center', gap:6, fontFamily:'Rajdhani', fontWeight:600, fontSize:'0.85rem' }}>
-                  <Edit2 size={13}/> Edit
-                </button>
-                <button onClick={()=>del(b.id)} style={{ padding:'8px 14px', background:'rgba(255,61,119,0.1)', border:'1px solid rgba(255,61,119,0.3)', color:'#ff3d77', cursor:'pointer', display:'flex', alignItems:'center', gap:6, fontFamily:'Rajdhani', fontWeight:600, fontSize:'0.85rem' }}>
-                  <Trash2 size={13}/> Delete
-                </button>
+              <div className="flex gap-3">
+                <button onClick={() => openEdit(b)} className="btn-outline text-sm py-2 px-4"><Edit2 size={14} /> Edit</button>
+                <button onClick={() => del(b.id)} className="btn-danger text-sm py-2 px-4"><Trash2 size={14} /> Delete</button>
               </div>
             </div>
           ))}
@@ -69,22 +82,22 @@ export default function AdminBlogs() {
       </main>
 
       {modal && (
-        <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.85)', zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center', padding:'2rem' }} onClick={()=>setModal(false)}>
-          <div className="glass" style={{ width:'100%', maxWidth:600, padding:'2.5rem', maxHeight:'90vh', overflowY:'auto', borderColor:'rgba(0,212,255,0.3)' }} onClick={e=>e.stopPropagation()}>
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'1.5rem' }}>
-              <h2 style={{ fontFamily:'Bebas Neue', fontSize:'1.8rem', letterSpacing:2, color:'#e8eaf6' }}>{editing?'Edit':'New'} Blog Post</h2>
-              <button onClick={()=>setModal(false)} style={{ background:'none', border:'none', color:'#8892b0', cursor:'pointer' }}><X size={20}/></button>
+        <div className="fixed inset-0 bg-gray-900/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-6" onClick={() => setModal(false)}>
+          <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl p-8 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-100">
+              <h2 className="font-sora font-bold text-xl text-gray-900">{editing ? 'Edit' : 'New'} Blog Post</h2>
+              <button onClick={() => setModal(false)} className="w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500"><X size={18} /></button>
             </div>
-            <label style={{ display:'block', color:'#8892b0', fontFamily:'Bebas Neue', letterSpacing:1, fontSize:'0.85rem', marginBottom:4 }}>Title</label>
-            <input value={form.title||''} onChange={e=>setForm({...form,title:e.target.value})} style={inputSt}
-              onFocus={e=>e.target.style.borderColor='#00d4ff'} onBlur={e=>e.target.style.borderColor='rgba(0,212,255,0.2)'}/>
-            <label style={{ display:'block', color:'#8892b0', fontFamily:'Bebas Neue', letterSpacing:1, fontSize:'0.85rem', marginBottom:4 }}>Image URL</label>
-            <input value={form.image_url||''} onChange={e=>setForm({...form,image_url:e.target.value})} style={inputSt}
-              onFocus={e=>e.target.style.borderColor='#00d4ff'} onBlur={e=>e.target.style.borderColor='rgba(0,212,255,0.2)'}/>
-            <label style={{ display:'block', color:'#8892b0', fontFamily:'Bebas Neue', letterSpacing:1, fontSize:'0.85rem', marginBottom:4 }}>Content</label>
-            <textarea value={form.content||''} onChange={e=>setForm({...form,content:e.target.value})} rows={8} style={{...inputSt, resize:'vertical', marginBottom:'1.5rem'}} />
-            <button onClick={save} className="btn-neon" style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:8, cursor:'pointer' }}>
-              <Save size={16}/> {editing?'Update':'Publish'}
+            <InputField label="Title" field="title" placeholder="VSpark 2025 — What to Expect" />
+            <InputField label="Author" field="author" placeholder="VSpark Team" />
+            <InputField label="Image URL" field="image_url" placeholder="https://..." />
+            <div className="mb-5">
+              <label className="block font-sora font-bold text-xs text-gray-500 uppercase tracking-widest mb-2">Content</label>
+              <textarea value={form.content || ''} onChange={e => setForm({ ...form, content: e.target.value })} rows={8}
+                className="admin-input resize-y" placeholder="Write your blog content here..." />
+            </div>
+            <button onClick={save} className="btn-primary w-full justify-center py-3">
+              <Save size={16} /> {editing ? 'Update' : 'Publish'}
             </button>
           </div>
         </div>

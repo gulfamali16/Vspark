@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, X, Save, UserCog, Shield, Eye } from 'lucide-react';
+import { Plus, Trash2, X, Save, UserCog, Shield, ToggleLeft, ToggleRight } from 'lucide-react';
 import AdminSidebar from '../components/AdminSidebar';
 import { supabase } from '../../lib/supabase';
 import toast from 'react-hot-toast';
 
-// All possible permissions
 const ALL_PERMISSIONS = [
   { key: 'registrations', label: 'Registrations',  desc: 'View & approve/reject registrations' },
   { key: 'competitions',  label: 'Competitions',   desc: 'Manage competition categories' },
@@ -16,18 +15,9 @@ const ALL_PERMISSIONS = [
   { key: 'settings',      label: 'Settings',       desc: 'Change site & payment settings' },
 ];
 
-const inputSt = {
-  width: '100%', padding: '11px 13px',
-  background: 'rgba(255,255,255,0.03)',
-  border: '1px solid rgba(0,212,255,0.2)',
-  color: '#e8eaf6', fontFamily: 'Rajdhani,sans-serif',
-  fontSize: '0.93rem', outline: 'none', marginBottom: '0.9rem',
-};
-
 export default function AdminAssistants() {
   const [assistants, setAssistants] = useState([]);
   const [modal, setModal] = useState(false);
-  const [viewing, setViewing] = useState(null);
   const [form, setForm] = useState({ name: '', email: '', permissions: [] });
   const [creating, setCreating] = useState(false);
 
@@ -51,7 +41,6 @@ export default function AdminAssistants() {
 
     setCreating(true);
     try {
-      // 1. Create Supabase Auth user for the assistant
       const tempPass = 'VSpark@' + Math.random().toString(36).slice(-6).toUpperCase();
 
       const authRes = await fetch(`${process.env.REACT_APP_SUPABASE_URL}/auth/v1/admin/users`, {
@@ -61,11 +50,7 @@ export default function AdminAssistants() {
           'apikey': process.env.REACT_APP_SUPABASE_SERVICE_KEY,
           'Authorization': `Bearer ${process.env.REACT_APP_SUPABASE_SERVICE_KEY}`,
         },
-        body: JSON.stringify({
-          email: form.email,
-          password: tempPass,
-          email_confirm: true,
-        }),
+        body: JSON.stringify({ email: form.email, password: tempPass, email_confirm: true }),
       });
 
       const authData = await authRes.json();
@@ -75,12 +60,8 @@ export default function AdminAssistants() {
         throw new Error('Could not create auth user: ' + (authData?.msg || 'Unknown error'));
       }
 
-      // 2. Save to admin_assistants table
       const { error: dbErr } = await supabase.from('admin_assistants').insert([{
-        name: form.name,
-        email: form.email,
-        permissions: form.permissions,
-        is_active: true,
+        name: form.name, email: form.email, permissions: form.permissions, is_active: true,
       }]);
 
       if (dbErr) throw new Error(dbErr.message);
@@ -98,7 +79,6 @@ export default function AdminAssistants() {
       setModal(false);
       setForm({ name: '', email: '', permissions: [] });
       load();
-
     } catch (err) {
       toast.error('Error: ' + err.message);
     }
@@ -118,81 +98,83 @@ export default function AdminAssistants() {
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)' }}>
+    <div className="admin-layout">
       <AdminSidebar />
-      <main style={{ marginLeft: 240, flex: 1, padding: '2.5rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+      <main className="admin-main">
+        <div className="admin-page-header flex justify-between items-start flex-wrap gap-4">
           <div>
-            <h1 style={{ fontFamily: 'Bebas Neue', fontSize: '2.5rem', letterSpacing: 3, color: '#e8eaf6', marginBottom: 2, display: 'flex', alignItems: 'center', gap: 12 }}>
-              <UserCog size={30} style={{ color: '#7c3aed' }} /> Assistant Accounts
+            <h1 className="admin-page-title flex items-center gap-3">
+              <UserCog size={22} className="text-indigo-600" /> Assistant Accounts
             </h1>
-            <p style={{ color: '#8892b0', fontFamily: 'JetBrains Mono', fontSize: '0.76rem' }}>
+            <p className="text-gray-500 text-sm font-medium mt-1">
               Create limited-access accounts for team members
             </p>
           </div>
-          <button className="btn-neon" onClick={() => { setForm({ name: '', email: '', permissions: [] }); setModal(true); }} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: '0.88rem', borderColor: '#7c3aed', color: '#7c3aed' }}>
-            <Plus size={15} /> Create Assistant
+          <button onClick={() => { setForm({ name: '', email: '', permissions: [] }); setModal(true); }} className="btn-primary text-sm">
+            <Plus size={16} /> Create Assistant
           </button>
         </div>
 
         {/* Info box */}
-        <div style={{ padding: '1rem 1.5rem', background: 'rgba(124,58,237,0.05)', border: '1px solid rgba(124,58,237,0.2)', borderLeft: '4px solid #7c3aed', marginBottom: '2rem' }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-            <Shield size={16} style={{ color: '#7c3aed', marginTop: 2, flexShrink: 0 }} />
-            <div>
-              <p style={{ color: '#7c3aed', fontWeight: 700, marginBottom: 4 }}>How assistants work</p>
-              <p style={{ color: '#8892b0', fontSize: '0.85rem', lineHeight: 1.7 }}>
-                Each assistant logs in at <code style={{ color: '#00d4ff', fontFamily: 'JetBrains Mono', fontSize: '0.8rem' }}>/admin/login</code> with their own credentials.
-                They only see the sections you grant them permission to. You can deactivate them anytime instantly.
-              </p>
-            </div>
+        <div className="bg-indigo-50 border border-indigo-200 border-l-4 border-l-indigo-500 rounded-2xl p-5 mb-8 flex items-start gap-4">
+          <Shield size={18} className="text-indigo-600 mt-0.5 flex-shrink-0" />
+          <div>
+            <p className="font-sora font-bold text-indigo-700 mb-1">How assistants work</p>
+            <p className="text-indigo-600 text-sm leading-relaxed">
+              Each assistant logs in at <code className="bg-white px-1.5 py-0.5 rounded border border-indigo-200 text-indigo-700 font-mono text-xs">/admin/login</code> with their own credentials.
+              They only see the sections you grant them permission to. You can deactivate them anytime instantly.
+            </p>
           </div>
         </div>
 
         {/* Assistants list */}
         {assistants.length === 0 ? (
-          <div className="glass" style={{ padding: '3rem', textAlign: 'center' }}>
-            <UserCog size={40} style={{ color: '#8892b0', marginBottom: '1rem' }} />
-            <p style={{ color: '#8892b0', fontFamily: 'JetBrains Mono', fontSize: '0.85rem' }}>No assistants yet. Create one to delegate access.</p>
+          <div className="admin-card text-center py-16">
+            <UserCog size={40} className="text-gray-300 mx-auto mb-4" />
+            <p className="text-gray-500 font-medium">No assistants yet. Create one to delegate access.</p>
           </div>
         ) : (
-          <div style={{ display: 'grid', gap: '1rem' }}>
+          <div className="space-y-4">
             {assistants.map(a => (
-              <div key={a.id} className="glass" style={{ padding: '1.5rem', borderLeft: `3px solid ${a.is_active ? '#7c3aed' : '#8892b0'}`, opacity: a.is_active ? 1 : 0.55 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-                      <h3 style={{ fontFamily: 'Bebas Neue', fontSize: '1.2rem', letterSpacing: 2, color: '#e8eaf6' }}>{a.name}</h3>
-                      <span style={{ padding: '2px 8px', background: a.is_active ? 'rgba(0,255,136,0.1)' : 'rgba(255,255,255,0.05)', color: a.is_active ? '#00ff88' : '#8892b0', fontSize: '0.65rem', fontFamily: 'JetBrains Mono', border: `1px solid ${a.is_active ? 'rgba(0,255,136,0.3)' : 'rgba(255,255,255,0.1)'}` }}>
-                        {a.is_active ? 'ACTIVE' : 'INACTIVE'}
-                      </span>
-                    </div>
-                    <p style={{ color: '#8892b0', fontFamily: 'JetBrains Mono', fontSize: '0.8rem', marginBottom: 10 }}>{a.email}</p>
-
-                    {/* Permissions badges */}
-                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                      {(a.permissions || []).map(p => {
-                        const perm = ALL_PERMISSIONS.find(x => x.key === p);
-                        return (
-                          <span key={p} style={{ padding: '2px 10px', background: 'rgba(124,58,237,0.1)', color: '#7c3aed', fontSize: '0.68rem', fontFamily: 'JetBrains Mono', border: '1px solid rgba(124,58,237,0.25)' }}>
-                            {perm?.label || p}
-                          </span>
-                        );
-                      })}
-                    </div>
+              <div key={a.id} className={`admin-card flex justify-between items-start flex-wrap gap-4 relative overflow-hidden ${!a.is_active ? 'opacity-60' : ''}`}>
+                <div className="absolute left-0 top-0 w-1.5 h-full rounded-l-2xl" style={{ background: a.is_active ? '#7C3AED' : '#9CA3AF' }} />
+                <div className="flex-1 pl-3">
+                  <div className="flex items-center gap-3 mb-2 flex-wrap">
+                    <h3 className="font-sora font-bold text-gray-900 text-base">{a.name}</h3>
+                    <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full border ${
+                      a.is_active
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                        : 'bg-gray-100 text-gray-500 border-gray-200'
+                    }`}>
+                      {a.is_active ? 'ACTIVE' : 'INACTIVE'}
+                    </span>
                   </div>
-
-                  <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
-                    <button
-                      onClick={() => toggleActive(a.id, !a.is_active)}
-                      style={{ padding: '7px 14px', background: a.is_active ? 'rgba(255,107,0,0.08)' : 'rgba(0,255,136,0.08)', border: `1px solid ${a.is_active ? 'rgba(255,107,0,0.3)' : 'rgba(0,255,136,0.3)'}`, color: a.is_active ? '#ff6b00' : '#00ff88', cursor: 'pointer', fontSize: '0.78rem', fontFamily: 'Rajdhani', fontWeight: 600 }}
-                    >
-                      {a.is_active ? 'Deactivate' : 'Activate'}
-                    </button>
-                    <button onClick={() => del(a.id)} style={{ padding: '7px 12px', background: 'rgba(255,61,119,0.08)', border: '1px solid rgba(255,61,119,0.2)', color: '#ff3d77', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, fontSize: '0.78rem', fontFamily: 'Rajdhani', fontWeight: 600 }}>
-                      <Trash2 size={12} /> Delete
-                    </button>
+                  <p className="text-gray-500 text-sm mb-3">{a.email}</p>
+                  <div className="flex gap-2 flex-wrap">
+                    {(a.permissions || []).map(p => {
+                      const perm = ALL_PERMISSIONS.find(x => x.key === p);
+                      return (
+                        <span key={p} className="px-2.5 py-1 bg-indigo-50 text-indigo-700 border border-indigo-100 rounded-lg text-[11px] font-bold">
+                          {perm?.label || p}
+                        </span>
+                      );
+                    })}
                   </div>
+                </div>
+                <div className="flex gap-3 flex-shrink-0">
+                  <button onClick={() => toggleActive(a.id, !a.is_active)}
+                    className={`flex items-center gap-2 text-sm font-bold py-2 px-4 rounded-xl border transition-colors ${
+                      a.is_active
+                        ? 'bg-orange-50 border-orange-200 text-orange-600 hover:bg-orange-100'
+                        : 'bg-emerald-50 border-emerald-200 text-emerald-600 hover:bg-emerald-100'
+                    }`}
+                  >
+                    {a.is_active ? <ToggleRight size={16} /> : <ToggleLeft size={16} />}
+                    {a.is_active ? 'Deactivate' : 'Activate'}
+                  </button>
+                  <button onClick={() => del(a.id)} className="btn-danger text-sm py-2 px-4">
+                    <Trash2 size={14} /> Delete
+                  </button>
                 </div>
               </div>
             ))}
@@ -202,45 +184,46 @@ export default function AdminAssistants() {
 
       {/* Create Modal */}
       {modal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.88)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }} onClick={() => setModal(false)}>
-          <div className="glass" style={{ width: '100%', maxWidth: 540, padding: '2.5rem', borderColor: 'rgba(124,58,237,0.3)', maxHeight: '90vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
-              <h3 style={{ fontFamily: 'Bebas Neue', fontSize: '1.6rem', letterSpacing: 2, color: '#e8eaf6' }}>Create Assistant</h3>
-              <button onClick={() => setModal(false)} style={{ background: 'none', border: 'none', color: '#8892b0', cursor: 'pointer' }}><X size={20} /></button>
+        <div className="fixed inset-0 bg-gray-900/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-6" onClick={() => setModal(false)}>
+          <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl p-8 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-100">
+              <h3 className="font-sora font-bold text-xl text-gray-900">Create Assistant</h3>
+              <button onClick={() => setModal(false)} className="w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition-colors"><X size={18} /></button>
             </div>
 
-            <label style={{ display: 'block', color: '#8892b0', fontFamily: 'Bebas Neue', letterSpacing: 1, fontSize: '0.8rem', marginBottom: 4 }}>Name</label>
-            <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Ali Hassan" style={inputSt} />
-
-            <label style={{ display: 'block', color: '#8892b0', fontFamily: 'Bebas Neue', letterSpacing: 1, fontSize: '0.8rem', marginBottom: 4 }}>Email</label>
-            <input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="assistant@email.com" style={inputSt} />
+            <div className="mb-5">
+              <label className="block font-sora font-bold text-xs text-gray-500 uppercase tracking-widest mb-2">Name</label>
+              <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Ali Hassan" className="admin-input" />
+            </div>
+            <div className="mb-6">
+              <label className="block font-sora font-bold text-xs text-gray-500 uppercase tracking-widest mb-2">Email</label>
+              <input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="assistant@email.com" className="admin-input" />
+            </div>
 
             {/* Permissions */}
-            <div style={{ marginBottom: '1.5rem' }}>
-              <label style={{ display: 'block', color: '#8892b0', fontFamily: 'Bebas Neue', letterSpacing: 1, fontSize: '0.8rem', marginBottom: '0.75rem' }}>
+            <div className="mb-6">
+              <label className="block font-sora font-bold text-xs text-gray-500 uppercase tracking-widest mb-3">
                 Permissions — Select what they can access
               </label>
-              <div style={{ display: 'grid', gap: '0.5rem' }}>
+              <div className="space-y-2">
                 {ALL_PERMISSIONS.map(({ key, label, desc }) => {
                   const checked = form.permissions.includes(key);
                   return (
-                    <div
-                      key={key}
-                      onClick={() => togglePerm(key)}
-                      style={{
-                        padding: '0.75rem 1rem', cursor: 'pointer',
-                        background: checked ? 'rgba(124,58,237,0.1)' : 'rgba(255,255,255,0.02)',
-                        border: `1px solid ${checked ? 'rgba(124,58,237,0.4)' : 'rgba(0,212,255,0.1)'}`,
-                        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                        transition: 'all 0.15s',
-                      }}
+                    <div key={key} onClick={() => togglePerm(key)}
+                      className={`flex justify-between items-center p-4 rounded-xl border cursor-pointer transition-all ${
+                        checked
+                          ? 'bg-indigo-50 border-indigo-300'
+                          : 'bg-gray-50 border-gray-100 hover:border-gray-200 hover:bg-white'
+                      }`}
                     >
                       <div>
-                        <span style={{ color: checked ? '#7c3aed' : '#e8eaf6', fontWeight: 600, fontSize: '0.9rem' }}>{label}</span>
-                        <span style={{ color: '#8892b0', fontSize: '0.78rem', marginLeft: 10 }}>{desc}</span>
+                        <span className={`font-sora font-bold text-sm ${checked ? 'text-indigo-700' : 'text-gray-700'}`}>{label}</span>
+                        <span className="text-gray-400 text-xs ml-2">{desc}</span>
                       </div>
-                      <div style={{ width: 18, height: 18, borderRadius: 3, background: checked ? '#7c3aed' : 'transparent', border: `2px solid ${checked ? '#7c3aed' : 'rgba(0,212,255,0.3)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        {checked && <span style={{ color: '#fff', fontSize: '0.65rem', fontWeight: 900 }}>✓</span>}
+                      <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                        checked ? 'bg-indigo-600 border-indigo-600' : 'border-gray-300'
+                      }`}>
+                        {checked && <span className="text-white text-[10px] font-black">✓</span>}
                       </div>
                     </div>
                   );
@@ -248,13 +231,13 @@ export default function AdminAssistants() {
               </div>
             </div>
 
-            <button onClick={create} disabled={creating} className="btn-neon" style={{ width: '100%', borderColor: '#7c3aed', color: '#7c3aed', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: creating ? 'not-allowed' : 'pointer', opacity: creating ? 0.6 : 1, fontSize: '1rem' }}>
+            <button onClick={create} disabled={creating}
+              className={`w-full btn-primary justify-center py-4 text-base ${creating ? 'opacity-60 cursor-not-allowed' : ''}`}
+              style={{ background: creating ? '#6D28D9' : undefined }}
+            >
               <Shield size={16} /> {creating ? 'Creating...' : 'Create Assistant Account'}
             </button>
-
-            <p style={{ color: '#8892b0', fontSize: '0.78rem', textAlign: 'center', marginTop: '0.75rem', fontFamily: 'JetBrains Mono' }}>
-              A random password will be generated and shown to you
-            </p>
+            <p className="text-gray-400 text-xs text-center mt-3">A random password will be generated and shown to you</p>
           </div>
         </div>
       )}

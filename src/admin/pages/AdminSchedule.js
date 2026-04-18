@@ -4,14 +4,6 @@ import AdminSidebar from '../components/AdminSidebar';
 import { supabase } from '../../lib/supabase';
 import toast from 'react-hot-toast';
 
-const inputSt = {
-  width: '100%', padding: '11px 13px',
-  background: 'rgba(255,255,255,0.03)',
-  border: '1px solid rgba(0,212,255,0.2)',
-  color: '#e8eaf6', fontFamily: 'Rajdhani,sans-serif',
-  fontSize: '0.93rem', outline: 'none', marginBottom: '0.9rem',
-};
-
 // ── TAB: ROOMS ───────────────────────────────────────────────
 function RoomsTab() {
   const [rooms, setRooms] = useState([]);
@@ -41,53 +33,55 @@ function RoomsTab() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <h2 style={{ fontFamily: 'Bebas Neue', fontSize: '1.4rem', letterSpacing: 2, color: '#00d4ff' }}>Rooms & Venues</h2>
-        <button className="btn-neon" onClick={() => { setForm({ name: '', location: '', capacity: 30, is_active: true }); setEditing(null); setModal(true); }} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: '0.85rem' }}>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="font-sora font-bold text-xl text-gray-900">Rooms &amp; Venues</h2>
+        <button className="btn-primary text-sm" onClick={() => { setForm({ name: '', location: '', capacity: 30, is_active: true }); setEditing(null); setModal(true); }}>
           <Plus size={14} /> Add Room
         </button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(260px,1fr))', gap: '1rem' }}>
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {rooms.map(room => (
-          <div key={room.id} className="glass" style={{ padding: '1.25rem', borderLeft: `3px solid ${room.is_active ? '#00d4ff' : '#8892b0'}`, opacity: room.is_active ? 1 : 0.5 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
-              <h3 style={{ fontFamily: 'Bebas Neue', fontSize: '1.15rem', letterSpacing: 2, color: '#e8eaf6' }}>{room.name}</h3>
-              <div style={{ display: 'flex', gap: 6 }}>
-                <button onClick={() => { setForm(room); setEditing(room.id); setModal(true); }} style={{ background: 'none', border: 'none', color: '#00d4ff', cursor: 'pointer' }}><Edit2 size={13} /></button>
-                <button onClick={() => del(room.id)} style={{ background: 'none', border: 'none', color: '#ff3d77', cursor: 'pointer' }}><Trash2 size={13} /></button>
+          <div key={room.id} className={`bg-white rounded-2xl border shadow-sm p-5 relative overflow-hidden ${room.is_active ? 'border-gray-100' : 'border-gray-100 opacity-50'}`}>
+            <div className="absolute top-0 left-0 w-1.5 h-full rounded-l-2xl" style={{ background: room.is_active ? '#4F46E5' : '#9CA3AF' }} />
+            <div className="flex justify-between items-start mb-3 pl-3">
+              <h3 className="font-sora font-bold text-gray-900">{room.name}</h3>
+              <div className="flex gap-2">
+                <button onClick={() => { setForm(room); setEditing(room.id); setModal(true); }} className="text-primary-500 hover:text-primary-700 transition-colors"><Edit2 size={14} /></button>
+                <button onClick={() => del(room.id)} className="text-red-400 hover:text-red-600 transition-colors"><Trash2 size={14} /></button>
               </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-              <MapPin size={12} style={{ color: '#8892b0' }} />
-              <span style={{ color: '#8892b0', fontSize: '0.82rem' }}>{room.location || '—'}</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <Users size={12} style={{ color: '#ffd700' }} />
-              <span style={{ color: '#ffd700', fontSize: '0.85rem', fontFamily: 'JetBrains Mono' }}>Capacity: {room.capacity}</span>
+            <div className="pl-3 space-y-2">
+              <div className="flex items-center gap-2 text-gray-500 text-sm">
+                <MapPin size={13} /> {room.location || '—'}
+              </div>
+              <div className="flex items-center gap-2 text-sm font-bold text-gray-700">
+                <Users size={13} className="text-primary-500" /> Capacity: {room.capacity}
+              </div>
             </div>
           </div>
         ))}
+        {rooms.length === 0 && <p className="text-gray-400 text-sm font-medium col-span-4">No rooms added yet.</p>}
       </div>
 
       {modal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }} onClick={() => setModal(false)}>
-          <div className="glass" style={{ width: '100%', maxWidth: 440, padding: '2rem', borderColor: 'rgba(0,212,255,0.3)' }} onClick={e => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
-              <h3 style={{ fontFamily: 'Bebas Neue', fontSize: '1.5rem', letterSpacing: 2, color: '#e8eaf6' }}>{editing ? 'Edit' : 'Add'} Room</h3>
-              <button onClick={() => setModal(false)} style={{ background: 'none', border: 'none', color: '#8892b0', cursor: 'pointer' }}><X size={18} /></button>
+        <div className="fixed inset-0 bg-gray-900/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-6" onClick={() => setModal(false)}>
+          <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl p-8" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-100">
+              <h3 className="font-sora font-bold text-lg text-gray-900">{editing ? 'Edit' : 'Add'} Room</h3>
+              <button onClick={() => setModal(false)} className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-500"><X size={18} /></button>
             </div>
             {[['name', 'Room Name', 'text'], ['location', 'Location', 'text'], ['capacity', 'Capacity', 'number']].map(([k, l, t]) => (
-              <div key={k}>
-                <label style={{ display: 'block', color: '#8892b0', fontFamily: 'Bebas Neue', letterSpacing: 1, fontSize: '0.8rem', marginBottom: 4 }}>{l}</label>
-                <input type={t} value={form[k] || ''} onChange={e => setForm({ ...form, [k]: e.target.value })} style={inputSt} />
+              <div key={k} className="mb-4">
+                <label className="block font-sora font-bold text-xs text-gray-500 uppercase tracking-widest mb-2">{l}</label>
+                <input type={t} value={form[k] || ''} onChange={e => setForm({ ...form, [k]: e.target.value })} className="admin-input" />
               </div>
             ))}
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', color: '#8892b0', fontSize: '0.88rem', marginBottom: '1rem' }}>
-              <input type="checkbox" checked={form.is_active} onChange={e => setForm({ ...form, is_active: e.target.checked })} style={{ width: 'auto' }} />
+            <label className="flex items-center gap-2 cursor-pointer text-sm font-semibold text-gray-600 mb-5">
+              <input type="checkbox" checked={form.is_active} onChange={e => setForm({ ...form, is_active: e.target.checked })} className="w-4 h-4" />
               Active / Available
             </label>
-            <button onClick={save} className="btn-neon" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer' }}>
+            <button onClick={save} className="btn-primary w-full justify-center py-3">
               <Save size={14} /> {editing ? 'Update' : 'Add'} Room
             </button>
           </div>
@@ -125,48 +119,48 @@ function TimeSlotsTab() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <h2 style={{ fontFamily: 'Bebas Neue', fontSize: '1.4rem', letterSpacing: 2, color: '#00d4ff' }}>Time Slots</h2>
-        <button className="btn-neon" onClick={() => { setForm({ label: '', start_time: '', end_time: '', event_date: '' }); setEditing(null); setModal(true); }} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: '0.85rem' }}>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="font-sora font-bold text-xl text-gray-900">Time Slots</h2>
+        <button className="btn-primary text-sm" onClick={() => { setForm({ label: '', start_time: '', end_time: '', event_date: '' }); setEditing(null); setModal(true); }}>
           <Plus size={14} /> Add Slot
         </button>
       </div>
 
-      <div style={{ display: 'grid', gap: '0.75rem' }}>
+      <div className="space-y-3">
+        {slots.length === 0 && <p className="text-gray-400 text-sm font-medium">No time slots yet.</p>}
         {slots.map(slot => (
-          <div key={slot.id} className="glass" style={{ padding: '1rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <Clock size={16} style={{ color: '#7c3aed' }} />
+          <div key={slot.id} className="admin-card flex justify-between items-center flex-wrap gap-3">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-violet-50 border border-violet-100 flex items-center justify-center">
+                <Clock size={16} className="text-violet-600" />
+              </div>
               <div>
-                <p style={{ fontFamily: 'Bebas Neue', fontSize: '1.05rem', letterSpacing: 2, color: '#e8eaf6' }}>{slot.label}</p>
-                <p style={{ color: '#8892b0', fontSize: '0.82rem', fontFamily: 'JetBrains Mono' }}>
-                  {slot.event_date} · {slot.start_time} – {slot.end_time}
-                </p>
+                <p className="font-sora font-bold text-gray-900">{slot.label}</p>
+                <p className="text-gray-500 text-sm">{slot.event_date} · {slot.start_time} – {slot.end_time}</p>
               </div>
             </div>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={() => { setForm(slot); setEditing(slot.id); setModal(true); }} style={{ background: 'rgba(0,212,255,0.08)', border: '1px solid rgba(0,212,255,0.2)', color: '#00d4ff', cursor: 'pointer', padding: '5px 12px', fontSize: '0.78rem', fontFamily: 'Rajdhani', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}><Edit2 size={12} /> Edit</button>
-              <button onClick={() => del(slot.id)} style={{ background: 'rgba(255,61,119,0.08)', border: '1px solid rgba(255,61,119,0.2)', color: '#ff3d77', cursor: 'pointer', padding: '5px 12px', fontSize: '0.78rem', fontFamily: 'Rajdhani', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}><Trash2 size={12} /> Delete</button>
+            <div className="flex gap-3">
+              <button onClick={() => { setForm(slot); setEditing(slot.id); setModal(true); }} className="btn-outline text-xs py-1.5 px-3"><Edit2 size={12} /> Edit</button>
+              <button onClick={() => del(slot.id)} className="btn-danger text-xs py-1.5 px-3"><Trash2 size={12} /> Delete</button>
             </div>
           </div>
         ))}
-        {slots.length === 0 && <p style={{ color: '#8892b0', fontFamily: 'JetBrains Mono', fontSize: '0.82rem' }}>No time slots yet.</p>}
       </div>
 
       {modal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }} onClick={() => setModal(false)}>
-          <div className="glass" style={{ width: '100%', maxWidth: 440, padding: '2rem', borderColor: 'rgba(124,58,237,0.3)' }} onClick={e => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
-              <h3 style={{ fontFamily: 'Bebas Neue', fontSize: '1.5rem', letterSpacing: 2, color: '#e8eaf6' }}>{editing ? 'Edit' : 'Add'} Time Slot</h3>
-              <button onClick={() => setModal(false)} style={{ background: 'none', border: 'none', color: '#8892b0', cursor: 'pointer' }}><X size={18} /></button>
+        <div className="fixed inset-0 bg-gray-900/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-6" onClick={() => setModal(false)}>
+          <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl p-8" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-100">
+              <h3 className="font-sora font-bold text-lg text-gray-900">{editing ? 'Edit' : 'Add'} Time Slot</h3>
+              <button onClick={() => setModal(false)} className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-500"><X size={18} /></button>
             </div>
             {[['label', 'Slot Label', 'text'], ['event_date', 'Event Date', 'date'], ['start_time', 'Start Time', 'time'], ['end_time', 'End Time', 'time']].map(([k, l, t]) => (
-              <div key={k}>
-                <label style={{ display: 'block', color: '#8892b0', fontFamily: 'Bebas Neue', letterSpacing: 1, fontSize: '0.8rem', marginBottom: 4 }}>{l}</label>
-                <input type={t} value={form[k] || ''} onChange={e => setForm({ ...form, [k]: e.target.value })} style={inputSt} />
+              <div key={k} className="mb-4">
+                <label className="block font-sora font-bold text-xs text-gray-500 uppercase tracking-widest mb-2">{l}</label>
+                <input type={t} value={form[k] || ''} onChange={e => setForm({ ...form, [k]: e.target.value })} className="admin-input" />
               </div>
             ))}
-            <button onClick={save} className="btn-neon" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer', borderColor: '#7c3aed', color: '#7c3aed' }}>
+            <button onClick={save} className="btn-primary w-full justify-center py-3">
               <Save size={14} /> {editing ? 'Update' : 'Add'} Slot
             </button>
           </div>
@@ -199,18 +193,13 @@ function ScheduleTab() {
     setCompetitions(comps.data || []);
     setRooms(rm.data || []);
     setSlots(sl.data || []);
-
-    // Count approved registrations per competition
     const counts = {};
-    (regs.data || []).forEach(r => {
-      counts[r.competition_id] = (counts[r.competition_id] || 0) + 1;
-    });
+    (regs.data || []).forEach(r => { counts[r.competition_id] = (counts[r.competition_id] || 0) + 1; });
     setRegCounts(counts);
   };
 
   useEffect(() => { load(); }, []);
 
-  // Auto-suggest room based on registered count
   const autoAssign = () => {
     if (!form.competition_id) { toast.error('Select a competition first'); return; }
     const count = regCounts[parseInt(form.competition_id)] || 0;
@@ -252,137 +241,142 @@ function ScheduleTab() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
-        <h2 style={{ fontFamily: 'Bebas Neue', fontSize: '1.4rem', letterSpacing: 2, color: '#00d4ff' }}>Competition Schedule</h2>
-        <button className="btn-neon" onClick={() => { setForm({ competition_id: '', room_id: '', time_slot_id: '', max_capacity: '', notes: '' }); setEditing(null); setModal(true); }} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: '0.85rem' }}>
+      <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
+        <h2 className="font-sora font-bold text-xl text-gray-900">Competition Schedule</h2>
+        <button className="btn-primary text-sm" onClick={() => { setForm({ competition_id: '', room_id: '', time_slot_id: '', max_capacity: '', notes: '' }); setEditing(null); setModal(true); }}>
           <Plus size={14} /> Assign Schedule
         </button>
       </div>
 
       {/* Unscheduled warning */}
       {unscheduled.length > 0 && (
-        <div style={{ marginBottom: '1.5rem', padding: '0.9rem 1.25rem', background: 'rgba(255,107,0,0.07)', border: '1px solid rgba(255,107,0,0.25)', borderLeft: '3px solid #ff6b00' }}>
-          <p style={{ color: '#ff6b00', fontSize: '0.85rem', fontFamily: 'JetBrains Mono' }}>
+        <div className="bg-orange-50 border border-orange-200 border-l-4 border-l-orange-400 rounded-2xl p-4 mb-6">
+          <p className="text-orange-800 text-sm font-medium">
             ⚠ {unscheduled.length} competition{unscheduled.length > 1 ? 's' : ''} not yet scheduled: {unscheduled.map(c => c.title).join(', ')}
           </p>
         </div>
       )}
 
       {/* Schedule cards */}
-      <div style={{ display: 'grid', gap: '1rem' }}>
+      <div className="space-y-4">
+        {schedules.length === 0 && <p className="text-gray-400 text-sm font-medium">No schedules assigned yet.</p>}
         {schedules.map(s => {
           const regCount = regCounts[s.competition_id] || 0;
           const capacity = s.max_capacity || s.rooms?.capacity || 0;
           const pct = capacity > 0 ? Math.min(100, Math.round((regCount / capacity) * 100)) : 0;
-          const fillColor = pct >= 90 ? '#ff3d77' : pct >= 70 ? '#ff6b00' : '#00ff88';
+          const fillColor = pct >= 90 ? '#EF4444' : pct >= 70 ? '#F97316' : '#10B981';
 
           return (
-            <div key={s.id} className="glass" style={{ padding: '1.5rem', borderLeft: `3px solid ${s.competitions?.color || '#00d4ff'}` }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8, flexWrap: 'wrap' }}>
-                    <h3 style={{ fontFamily: 'Bebas Neue', fontSize: '1.25rem', letterSpacing: 2, color: '#e8eaf6' }}>{s.competitions?.title}</h3>
-                    <span style={{ padding: '2px 8px', background: `${s.competitions?.color || '#00d4ff'}20`, color: s.competitions?.color || '#00d4ff', fontSize: '0.68rem', fontFamily: 'JetBrains Mono', border: `1px solid ${s.competitions?.color || '#00d4ff'}40` }}>
+            <div key={s.id} className="admin-card relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-1.5 h-full rounded-l-2xl" style={{ background: s.competitions?.color || '#4F46E5' }} />
+              <div className="flex justify-between items-start flex-wrap gap-4 pl-3">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-3 flex-wrap">
+                    <h3 className="font-sora font-bold text-gray-900">{s.competitions?.title}</h3>
+                    <span className="px-2 py-0.5 text-[11px] font-bold rounded-full border"
+                      style={{ background: `${s.competitions?.color || '#4F46E5'}15`, color: s.competitions?.color || '#4F46E5', borderColor: `${s.competitions?.color || '#4F46E5'}30` }}>
                       PKR {s.competitions?.fee}
                     </span>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: '0.5rem', marginBottom: 12 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <MapPin size={13} style={{ color: '#8892b0', flexShrink: 0 }} />
-                      <span style={{ color: '#e8eaf6', fontSize: '0.88rem' }}>{s.rooms?.name || '—'}</span>
-                      <span style={{ color: '#8892b0', fontSize: '0.78rem' }}>({s.rooms?.location})</span>
+                  <div className="grid sm:grid-cols-2 gap-2 mb-4">
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <MapPin size={13} className="text-gray-400" />
+                      <span className="font-medium">{s.rooms?.name || '—'}</span>
+                      <span className="text-gray-400 text-xs">({s.rooms?.location})</span>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <Clock size={13} style={{ color: '#8892b0', flexShrink: 0 }} />
-                      <span style={{ color: '#e8eaf6', fontSize: '0.88rem' }}>{s.time_slots?.label}</span>
-                      <span style={{ color: '#8892b0', fontSize: '0.78rem' }}>({s.time_slots?.start_time} – {s.time_slots?.end_time})</span>
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <Clock size={13} className="text-gray-400" />
+                      <span className="font-medium">{s.time_slots?.label}</span>
+                      <span className="text-gray-400 text-xs">({s.time_slots?.start_time} – {s.time_slots?.end_time})</span>
                     </div>
                   </div>
 
                   {/* Capacity bar */}
                   <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                      <span style={{ color: '#8892b0', fontSize: '0.78rem', fontFamily: 'JetBrains Mono' }}>Registered: {regCount} / {capacity}</span>
-                      <span style={{ color: fillColor, fontSize: '0.78rem', fontFamily: 'JetBrains Mono' }}>{pct}% full</span>
+                    <div className="flex justify-between mb-1">
+                      <span className="text-gray-400 text-xs">Registered: {regCount} / {capacity}</span>
+                      <span className="text-xs font-bold" style={{ color: fillColor }}>{pct}% full</span>
                     </div>
-                    <div style={{ height: 5, background: 'rgba(255,255,255,0.05)', borderRadius: 3 }}>
-                      <div style={{ height: '100%', width: `${pct}%`, background: fillColor, borderRadius: 3, transition: 'width 0.5s' }} />
+                    <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: fillColor }} />
                     </div>
                   </div>
-
-                  {s.notes && <p style={{ color: '#8892b0', fontSize: '0.82rem', marginTop: 8, fontStyle: 'italic' }}>Note: {s.notes}</p>}
+                  {s.notes && <p className="text-gray-400 text-xs mt-2 italic">Note: {s.notes}</p>}
                 </div>
 
-                <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
-                  <button onClick={() => { setForm({ competition_id: String(s.competition_id), room_id: String(s.room_id), time_slot_id: String(s.time_slot_id), max_capacity: String(s.max_capacity), notes: s.notes || '' }); setEditing(s.id); setModal(true); }} style={{ background: 'rgba(0,212,255,0.08)', border: '1px solid rgba(0,212,255,0.2)', color: '#00d4ff', cursor: 'pointer', padding: '6px 12px', fontSize: '0.78rem', fontFamily: 'Rajdhani', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}>
-                    <Edit2 size={12} /> Edit
-                  </button>
-                  <button onClick={() => del(s.id)} style={{ background: 'rgba(255,61,119,0.08)', border: '1px solid rgba(255,61,119,0.2)', color: '#ff3d77', cursor: 'pointer', padding: '6px 12px', fontSize: '0.78rem', fontFamily: 'Rajdhani', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}>
-                    <Trash2 size={12} /> Remove
-                  </button>
+                <div className="flex gap-3 flex-shrink-0">
+                  <button onClick={() => { setForm({ competition_id: String(s.competition_id), room_id: String(s.room_id), time_slot_id: String(s.time_slot_id), max_capacity: String(s.max_capacity), notes: s.notes || '' }); setEditing(s.id); setModal(true); }} className="btn-outline text-xs py-1.5 px-3"><Edit2 size={12} /> Edit</button>
+                  <button onClick={() => del(s.id)} className="btn-danger text-xs py-1.5 px-3"><Trash2 size={12} /> Remove</button>
                 </div>
               </div>
             </div>
           );
         })}
-        {schedules.length === 0 && <p style={{ color: '#8892b0', fontFamily: 'JetBrains Mono', fontSize: '0.82rem' }}>No schedules assigned yet.</p>}
       </div>
 
       {/* Add/Edit Modal */}
       {modal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.88)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }} onClick={() => setModal(false)}>
-          <div className="glass" style={{ width: '100%', maxWidth: 520, padding: '2rem', borderColor: 'rgba(0,212,255,0.3)', maxHeight: '90vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
-              <h3 style={{ fontFamily: 'Bebas Neue', fontSize: '1.5rem', letterSpacing: 2, color: '#e8eaf6' }}>{editing ? 'Edit' : 'Assign'} Schedule</h3>
-              <button onClick={() => setModal(false)} style={{ background: 'none', border: 'none', color: '#8892b0', cursor: 'pointer' }}><X size={18} /></button>
+        <div className="fixed inset-0 bg-gray-900/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-6" onClick={() => setModal(false)}>
+          <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl p-8 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-100">
+              <h3 className="font-sora font-bold text-lg text-gray-900">{editing ? 'Edit' : 'Assign'} Schedule</h3>
+              <button onClick={() => setModal(false)} className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-500"><X size={18} /></button>
             </div>
 
             {/* Competition */}
-            <label style={{ display: 'block', color: '#8892b0', fontFamily: 'Bebas Neue', letterSpacing: 1, fontSize: '0.8rem', marginBottom: 4 }}>Competition *</label>
-            <select value={form.competition_id} onChange={e => setForm({ ...form, competition_id: e.target.value, max_capacity: '' })} style={{ ...inputSt, cursor: 'pointer', appearance: 'none' }}>
-              <option value="">Select Competition</option>
-              {competitions.map(c => (
-                <option key={c.id} value={c.id}>
-                  {c.title} — {regCounts[c.id] || 0} registered
-                </option>
-              ))}
-            </select>
+            <div className="mb-4">
+              <label className="block font-sora font-bold text-xs text-gray-500 uppercase tracking-widest mb-2">Competition *</label>
+              <select value={form.competition_id} onChange={e => setForm({ ...form, competition_id: e.target.value, max_capacity: '' })} className="admin-input cursor-pointer">
+                <option value="">Select Competition</option>
+                {competitions.map(c => (
+                  <option key={c.id} value={c.id}>{c.title} — {regCounts[c.id] || 0} registered</option>
+                ))}
+              </select>
+            </div>
 
             {/* Auto-assign button */}
             {form.competition_id && (
-              <button onClick={autoAssign} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(0,255,136,0.08)', border: '1px solid rgba(0,255,136,0.25)', color: '#00ff88', cursor: 'pointer', padding: '7px 14px', fontSize: '0.82rem', fontFamily: 'Rajdhani', fontWeight: 700, marginBottom: '0.9rem' }}>
+              <button onClick={autoAssign} className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm font-bold py-2 px-4 rounded-xl mb-4 hover:bg-emerald-100 transition-colors">
                 <Zap size={13} /> Auto-suggest Room Based on Registrations
               </button>
             )}
 
             {/* Room */}
-            <label style={{ display: 'block', color: '#8892b0', fontFamily: 'Bebas Neue', letterSpacing: 1, fontSize: '0.8rem', marginBottom: 4 }}>Room *</label>
-            <select value={form.room_id} onChange={e => { const r = rooms.find(rm => String(rm.id) === e.target.value); setForm({ ...form, room_id: e.target.value, max_capacity: r ? String(r.capacity) : form.max_capacity }); }} style={{ ...inputSt, cursor: 'pointer', appearance: 'none' }}>
-              <option value="">Select Room</option>
-              {rooms.map(r => (
-                <option key={r.id} value={r.id}>{r.name} — capacity {r.capacity}</option>
-              ))}
-            </select>
+            <div className="mb-4">
+              <label className="block font-sora font-bold text-xs text-gray-500 uppercase tracking-widest mb-2">Room *</label>
+              <select value={form.room_id} onChange={e => { const r = rooms.find(rm => String(rm.id) === e.target.value); setForm({ ...form, room_id: e.target.value, max_capacity: r ? String(r.capacity) : form.max_capacity }); }} className="admin-input cursor-pointer">
+                <option value="">Select Room</option>
+                {rooms.map(r => (
+                  <option key={r.id} value={r.id}>{r.name} — capacity {r.capacity}</option>
+                ))}
+              </select>
+            </div>
 
             {/* Time Slot */}
-            <label style={{ display: 'block', color: '#8892b0', fontFamily: 'Bebas Neue', letterSpacing: 1, fontSize: '0.8rem', marginBottom: 4 }}>Time Slot *</label>
-            <select value={form.time_slot_id} onChange={e => setForm({ ...form, time_slot_id: e.target.value })} style={{ ...inputSt, cursor: 'pointer', appearance: 'none' }}>
-              <option value="">Select Time Slot</option>
-              {slots.map(s => (
-                <option key={s.id} value={s.id}>{s.label} ({s.start_time} – {s.end_time})</option>
-              ))}
-            </select>
+            <div className="mb-4">
+              <label className="block font-sora font-bold text-xs text-gray-500 uppercase tracking-widest mb-2">Time Slot *</label>
+              <select value={form.time_slot_id} onChange={e => setForm({ ...form, time_slot_id: e.target.value })} className="admin-input cursor-pointer">
+                <option value="">Select Time Slot</option>
+                {slots.map(s => (
+                  <option key={s.id} value={s.id}>{s.label} ({s.start_time} – {s.end_time})</option>
+                ))}
+              </select>
+            </div>
 
             {/* Max Capacity */}
-            <label style={{ display: 'block', color: '#8892b0', fontFamily: 'Bebas Neue', letterSpacing: 1, fontSize: '0.8rem', marginBottom: 4 }}>Max Capacity</label>
-            <input type="number" value={form.max_capacity} onChange={e => setForm({ ...form, max_capacity: e.target.value })} placeholder="Auto-filled from room" style={inputSt} />
+            <div className="mb-4">
+              <label className="block font-sora font-bold text-xs text-gray-500 uppercase tracking-widest mb-2">Max Capacity</label>
+              <input type="number" value={form.max_capacity} onChange={e => setForm({ ...form, max_capacity: e.target.value })} placeholder="Auto-filled from room" className="admin-input" />
+            </div>
 
             {/* Notes */}
-            <label style={{ display: 'block', color: '#8892b0', fontFamily: 'Bebas Neue', letterSpacing: 1, fontSize: '0.8rem', marginBottom: 4 }}>Notes (optional)</label>
-            <textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} rows={2} style={{ ...inputSt, resize: 'vertical' }} placeholder="e.g. Bring your own laptop" />
+            <div className="mb-6">
+              <label className="block font-sora font-bold text-xs text-gray-500 uppercase tracking-widest mb-2">Notes (optional)</label>
+              <textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} rows={2} className="admin-input resize-y" placeholder="e.g. Bring your own laptop" />
+            </div>
 
-            <button onClick={save} className="btn-neon" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer', marginTop: 4 }}>
+            <button onClick={save} className="btn-primary w-full justify-center py-3">
               <Save size={14} /> {editing ? 'Update' : 'Save'} Schedule
             </button>
           </div>
@@ -397,30 +391,28 @@ export default function AdminSchedule() {
   const [tab, setTab] = useState('schedule');
 
   const tabs = [
-    { id: 'schedule', label: 'Schedule', icon: Calendar },
-    { id: 'rooms',    label: 'Rooms',    icon: MapPin },
+    { id: 'schedule', label: 'Schedule',   icon: Calendar },
+    { id: 'rooms',    label: 'Rooms',      icon: MapPin },
     { id: 'slots',    label: 'Time Slots', icon: Clock },
   ];
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)' }}>
+    <div className="admin-layout">
       <AdminSidebar />
-      <main style={{ marginLeft: 240, flex: 1, padding: '2.5rem' }}>
-        <div style={{ marginBottom: '2rem' }}>
-          <h1 style={{ fontFamily: 'Bebas Neue', fontSize: '2.5rem', letterSpacing: 3, color: '#e8eaf6', marginBottom: 2 }}>Schedule Manager</h1>
-          <p style={{ color: '#8892b0', fontFamily: 'JetBrains Mono', fontSize: '0.76rem' }}>Manage rooms, time slots, and assign competitions to venues</p>
+      <main className="admin-main">
+        <div className="admin-page-header">
+          <h1 className="admin-page-title">Schedule Manager</h1>
+          <p className="text-gray-500 text-sm font-medium mt-1">Manage rooms, time slots, and assign competitions to venues</p>
         </div>
 
         {/* Tabs */}
-        <div style={{ display: 'flex', gap: 4, marginBottom: '2rem', borderBottom: '1px solid rgba(0,212,255,0.1)', paddingBottom: 0 }}>
+        <div className="flex gap-0 border-b border-gray-200 mb-8 overflow-x-auto">
           {tabs.map(({ id, label, icon: Icon }) => (
-            <button key={id} onClick={() => setTab(id)} style={{
-              padding: '10px 22px', background: 'transparent', border: 'none',
-              borderBottom: tab === id ? '2px solid #00d4ff' : '2px solid transparent',
-              color: tab === id ? '#00d4ff' : '#8892b0', cursor: 'pointer',
-              fontFamily: 'Bebas Neue', letterSpacing: 2, fontSize: '1rem',
-              display: 'flex', alignItems: 'center', gap: 7, transition: 'all 0.2s',
-            }}>
+            <button key={id} onClick={() => setTab(id)}
+              className={`flex items-center gap-2 px-7 py-3.5 font-sora font-bold text-sm border-b-2 whitespace-nowrap transition-all ${
+                tab === id ? 'border-primary-500 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-800'
+              }`}
+            >
               <Icon size={14} /> {label}
             </button>
           ))}

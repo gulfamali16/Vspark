@@ -1,216 +1,172 @@
-import React, { useState, useEffect } from 'react'
+/**
+ * Register.jsx — Premium light-theme registration page
+ */
+import React, { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { CheckCircle, Loader, User, Mail, Hash, Building, Zap, Trophy } from 'lucide-react'
+import { CheckCircle, Loader, User, Mail, Hash, Building, Zap, Trophy, ArrowRight } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { supabase } from '../lib/supabase'
 
-const competitions = [
-  'Speed Programming',
-  'E-Gaming (FIFA)',
-  'E-Gaming (Tekken)',
-  'Web Development',
-  'UI/UX Design',
-  'Prompt Engineering',
-  'Quiz Competition',
-  'Poster Designing',
-]
-
-const departments = [
-  'Computer Science (CS)',
-  'Software Engineering (SE)',
-  'Information Technology (IT)',
-  'Artificial Intelligence (AI)',
-  'Electrical Engineering (EE)',
-  'Business Administration (BBA)',
-  'Other',
-]
+const COMPETITIONS = ['Speed Programming','E-Gaming (FIFA)','E-Gaming (Tekken)','Web Development','UI/UX Design','Prompt Engineering','Quiz Competition','Poster Designing']
+const DEPARTMENTS  = ['Computer Science (CS)','Software Engineering (SE)','Information Technology (IT)','Artificial Intelligence (AI)','Electrical Engineering (EE)','Business Administration (BBA)','Other']
+const INITIAL_FORM = { student_name:'', email:'', reg_number:'', department:'', event_name:'' }
 
 export default function Register() {
   const [searchParams] = useSearchParams()
-  const preSelected = searchParams.get('event')
-
-  const [form, setForm] = useState({
-    student_name: '',
-    email: '',
-    reg_number: '',
-    department: '',
-    event_name: preSelected || '',
-  })
+  const preSelected    = searchParams.get('event')
+  const [form,    setForm]    = useState({ ...INITIAL_FORM, event_name: preSelected || '' })
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
-  const [error, setError] = useState('')
+  const [error,   setError]   = useState('')
 
-  const handle = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }))
+  const handleFieldChange = (key) => (e) => setForm(f => ({ ...f, [key]: e.target.value }))
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
-
+    e.preventDefault(); setLoading(true); setError('')
     try {
-      // Get event_id if exists
       const { data: events } = await supabase.from('events').select('id').eq('title', form.event_name).limit(1)
       const event_id = events?.[0]?.id || null
-
-      const { error: err } = await supabase.from('registrations').insert([{
-        student_name: form.student_name,
-        email: form.email,
-        reg_number: form.reg_number,
-        department: form.department,
-        event_name: form.event_name,
-        event_id,
-      }])
-
+      const { error: err } = await supabase.from('registrations').insert([{ ...form, event_id }])
       if (err) throw err
       setSuccess(true)
-    } catch (err) {
-      setError(err.message || 'Registration failed. Please try again.')
-    } finally {
-      setLoading(false)
-    }
+    } catch (err) { setError(err.message || 'Registration failed. Please try again.') }
+    finally { setLoading(false) }
   }
 
-  if (success) {
-    return (
-      <div>
-        <div className="grid-bg" />
-        <Navbar />
-        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', paddingTop: 72 }}>
-          <div style={{ textAlign: 'center', maxWidth: 520, padding: 40, animation: 'fadeInUp 0.5s ease' }}>
-            <div style={{ width: 100, height: 100, borderRadius: '50%', background: 'rgba(34,197,94,0.1)', border: '2px solid rgba(34,197,94,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 32px', animation: 'pulse-glow 2s infinite' }}>
-              <CheckCircle size={48} style={{ color: '#22c55e' }} />
-            </div>
-            <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '2rem', fontWeight: 800, marginBottom: 16 }}>
-              Registration <span className="gradient-text">Successful!</span>
-            </h1>
-            <p style={{ color: 'var(--text-muted)', lineHeight: 1.7, marginBottom: 32 }}>
-              Thank you, <strong style={{ color: 'var(--text)' }}>{form.student_name}</strong>! You've successfully registered for <strong style={{ color: 'var(--primary)' }}>{form.event_name}</strong> at VSpark 2025.
-            </p>
+  if (success) return <SuccessView form={form} onReset={() => { setSuccess(false); setForm({ ...INITIAL_FORM }) }} />
 
-            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, padding: 24, marginBottom: 32, textAlign: 'left' }}>
-              <h3 style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, marginBottom: 16, fontSize: '1rem' }}>Registration Details</h3>
-              {[
-                { label: 'Name', val: form.student_name },
-                { label: 'Email', val: form.email },
-                { label: 'Reg. No.', val: form.reg_number },
-                { label: 'Department', val: form.department },
-                { label: 'Event', val: form.event_name },
-                { label: 'Date', val: 'December 10, 2025' },
-                { label: 'Venue', val: 'COMSATS University, Vehari Campus' },
-              ].map(item => (
-                <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--border)', fontSize: '0.875rem' }}>
-                  <span style={{ color: 'var(--text-muted)' }}>{item.label}</span>
-                  <span style={{ fontWeight: 600, textAlign: 'right' }}>{item.val}</span>
-                </div>
-              ))}
-            </div>
-
-            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
-              <button onClick={() => { setSuccess(false); setForm({ student_name: '', email: '', reg_number: '', department: '', event_name: '' }) }} className="btn-primary">
-                Register for Another Event
-              </button>
-              <a href="/" className="btn-outline">Back to Home</a>
-            </div>
-          </div>
-        </div>
-        <Footer />
-      </div>
-    )
-  }
+  const inputStyle = { background:'#FAFAFA', border:'1.5px solid #E5E7EB', borderRadius:10, padding:'11px 14px', fontSize:15, color:'#0F172A', outline:'none', width:'100%', fontFamily:'var(--font-body)', transition:'all 0.2s' }
 
   return (
-    <div>
-      <div className="grid-bg" />
+    <div style={{ background:'#F9F7F4', minHeight:'100vh' }}>
       <Navbar />
-      <div style={{ paddingTop: 100 }}>
-        <section style={{ padding: '60px 0 100px' }}>
-          <div className="container" style={{ maxWidth: 900 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 48, alignItems: 'start' }}>
+      <div style={{ paddingTop:68 }}>
+        {/* Header */}
+        <section style={{ padding:'80px 0 48px', textAlign:'center', background:'linear-gradient(160deg, #F9F7F4, #EEF2FF)' }}>
+          <div className="container">
+            <span className="section-eyebrow">Join VSpark 2025</span>
+            <h1 className="section-title" style={{ marginBottom:16 }}>Register <span className="gradient-text">Now</span></h1>
+            <p className="section-subtitle" style={{ margin:'0 auto' }}>Secure your spot at Pakistan's premier CS competition. Free for all eligible students.</p>
+          </div>
+        </section>
+
+        <section style={{ padding:'48px 0 100px' }}>
+          <div className="container" style={{ maxWidth:900 }}>
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(300px, 1fr))', gap:48, alignItems:'start' }}>
               {/* Info panel */}
               <div>
-                <div className="badge" style={{ marginBottom: 24 }}>Join VSpark 2025</div>
-                <h1 className="section-title" style={{ marginBottom: 20 }}>
-                  Register <span className="gradient-text">Now</span>
-                </h1>
-                <p style={{ color: 'var(--text-muted)', lineHeight: 1.8, marginBottom: 32 }}>
-                  Fill in your details to secure your spot at VSpark 2025. Registration is completely free for all eligible students.
-                </p>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 32 }}>
-                  {[
-                    { icon: <Trophy size={18} />, text: '7 Competition Categories' },
-                    { icon: <CheckCircle size={18} />, text: 'Free Registration' },
-                    { icon: <Zap size={18} />, text: 'Internship Opportunities' },
-                    { icon: <Building size={18} />, text: 'Open to All CS/SE/IT/AI Students' },
-                  ].map((item, i) => (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                      <span style={{ color: 'var(--primary)', flexShrink: 0 }}>{item.icon}</span>
-                      {item.text}
+                <h3 style={{ fontFamily:'var(--font-display)', fontWeight:700, fontSize:'1.3rem', color:'#0F172A', marginBottom:24 }}>What you get</h3>
+                {[
+                  { icon:<Trophy size={16}/>,   text:'7 Competition Categories', sub:'Pick the one that fits your skill' },
+                  { icon:<Zap    size={16}/>,   text:'Internship Opportunities', sub:'Top performers get industry connections' },
+                  { icon:<CheckCircle size={16}/>, text:'100% Free to Register', sub:'No fees, no hidden costs' },
+                  { icon:<Building size={16}/>, text:'Open to All CS/SE/IT/AI', sub:'From any Pakistani university' },
+                ].map((item, i) => (
+                  <div key={i} style={{ display:'flex', gap:14, alignItems:'flex-start', marginBottom:20 }}>
+                    <div style={{ width:36, height:36, borderRadius:9, background:'#EEF2FF', display:'flex', alignItems:'center', justifyContent:'center', color:'#4F46E5', flexShrink:0, marginTop:2 }}>
+                      {item.icon}
+                    </div>
+                    <div>
+                      <div style={{ fontWeight:600, fontSize:'0.95rem', color:'#0F172A', marginBottom:2 }}>{item.text}</div>
+                      <div style={{ fontSize:'0.83rem', color:'#9CA3AF' }}>{item.sub}</div>
+                    </div>
+                  </div>
+                ))}
+                <div style={{ background:'#fff', border:'1px solid #E5E7EB', borderRadius:16, padding:20, marginTop:8 }}>
+                  <div style={{ fontSize:12, fontWeight:700, letterSpacing:'0.06em', textTransform:'uppercase', color:'#4F46E5', marginBottom:12 }}>📅 Event Details</div>
+                  {[['Date','December 10, 2025'],['Venue','COMSATS University, Vehari Campus'],['Time','9:00 AM onwards'],['Organizer','Department of Computer Science']].map(([k,v])=>(
+                    <div key={k} style={{ display:'flex', justifyContent:'space-between', padding:'7px 0', borderBottom:'1px solid #F3F4F6', fontSize:'0.85rem' }}>
+                      <span style={{ color:'#9CA3AF' }}>{k}</span><span style={{ fontWeight:600, color:'#374151' }}>{v}</span>
                     </div>
                   ))}
-                </div>
-
-                <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 20 }}>
-                  <div style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: '0.9rem', marginBottom: 12, color: 'var(--primary)' }}>
-                    📅 Event Details
-                  </div>
-                  <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)', lineHeight: 1.8 }}>
-                    <strong style={{ color: 'var(--text)' }}>Date:</strong> December 10, 2025<br />
-                    <strong style={{ color: 'var(--text)' }}>Venue:</strong> COMSATS University Islamabad, Vehari Campus<br />
-                    <strong style={{ color: 'var(--text)' }}>Time:</strong> 9:00 AM onwards<br />
-                    <strong style={{ color: 'var(--text)' }}>Organized by:</strong> Department of Computer Science
-                  </div>
                 </div>
               </div>
 
               {/* Form */}
-              <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 20, padding: 36, position: 'relative', overflow: 'hidden' }}>
-                <div style={{ position: 'absolute', top: -60, right: -60, width: 180, height: 180, borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,212,255,0.08), transparent)', pointerEvents: 'none' }} />
-                <h2 style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: '1.2rem', marginBottom: 28 }}>Registration Form</h2>
-
+              <div style={{ background:'#fff', border:'1px solid #E5E7EB', borderRadius:24, padding:36, boxShadow:'0 4px 24px rgba(0,0,0,0.06)' }}>
+                <h2 style={{ fontFamily:'var(--font-display)', fontWeight:700, fontSize:'1.25rem', color:'#0F172A', marginBottom:28 }}>Registration Form</h2>
                 <form onSubmit={handleSubmit}>
+                  {[
+                    { key:'student_name', label:'Full Name',            Icon:User,     placeholder:'Muhammad Ahmad',      type:'text' },
+                    { key:'reg_number',   label:'Registration Number',  Icon:Hash,     placeholder:'FA21-BCS-001',         type:'text' },
+                    { key:'email',        label:'Email Address',        Icon:Mail,     placeholder:'student@comsats.edu.pk', type:'email' },
+                  ].map(({ key, label, Icon, placeholder, type }) => (
+                    <div key={key} className="form-group">
+                      <label style={{ display:'flex', alignItems:'center', gap:6, fontSize:13, fontWeight:600, color:'#374151', marginBottom:6 }}>
+                        <Icon size={12} /> {label} *
+                      </label>
+                      <input type={type} value={form[key]} onChange={handleFieldChange(key)} placeholder={placeholder} required style={inputStyle}
+                        onFocus={e=>{e.target.style.borderColor='#4F46E5';e.target.style.boxShadow='0 0 0 3px rgba(79,70,229,0.1)'}}
+                        onBlur={e=>{e.target.style.borderColor='#E5E7EB';e.target.style.boxShadow='none'}}
+                      />
+                    </div>
+                  ))}
                   <div className="form-group">
-                    <label><User size={12} style={{ display: 'inline', marginRight: 6 }} />Full Name *</label>
-                    <input value={form.student_name} onChange={handle('student_name')} placeholder="Muhammad Ahmad" required />
-                  </div>
-                  <div className="form-group">
-                    <label><Hash size={12} style={{ display: 'inline', marginRight: 6 }} />Registration Number *</label>
-                    <input value={form.reg_number} onChange={handle('reg_number')} placeholder="FA21-BCS-001" required />
-                  </div>
-                  <div className="form-group">
-                    <label><Mail size={12} style={{ display: 'inline', marginRight: 6 }} />Email Address *</label>
-                    <input type="email" value={form.email} onChange={handle('email')} placeholder="student@comsats.edu.pk" required />
-                  </div>
-                  <div className="form-group">
-                    <label><Building size={12} style={{ display: 'inline', marginRight: 6 }} />Department *</label>
-                    <select value={form.department} onChange={handle('department')} required>
+                    <label style={{ fontSize:13, fontWeight:600, color:'#374151', marginBottom:6, display:'flex', alignItems:'center', gap:6 }}>
+                      <Building size={12} /> Department *
+                    </label>
+                    <select value={form.department} onChange={handleFieldChange('department')} required style={{ ...inputStyle, cursor:'pointer' }}>
                       <option value="">Select Department</option>
-                      {departments.map(d => <option key={d} value={d}>{d}</option>)}
+                      {DEPARTMENTS.map(d=><option key={d} value={d}>{d}</option>)}
                     </select>
                   </div>
                   <div className="form-group">
-                    <label><Trophy size={12} style={{ display: 'inline', marginRight: 6 }} />Competition / Event *</label>
-                    <select value={form.event_name} onChange={handle('event_name')} required>
+                    <label style={{ fontSize:13, fontWeight:600, color:'#374151', marginBottom:6, display:'flex', alignItems:'center', gap:6 }}>
+                      <Trophy size={12} /> Competition / Event *
+                    </label>
+                    <select value={form.event_name} onChange={handleFieldChange('event_name')} required style={{ ...inputStyle, cursor:'pointer' }}>
                       <option value="">Select Competition</option>
-                      {competitions.map(c => <option key={c} value={c}>{c}</option>)}
+                      {COMPETITIONS.map(c=><option key={c} value={c}>{c}</option>)}
                     </select>
                   </div>
-
                   {error && (
-                    <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 8, padding: '12px 16px', color: '#f87171', fontSize: '0.875rem', marginBottom: 20 }}>
+                    <div style={{ background:'#FEF2F2', border:'1px solid #FECACA', borderRadius:10, padding:'12px 16px', color:'#B91C1C', fontSize:'0.875rem', marginBottom:20 }}>
                       {error}
                     </div>
                   )}
-
-                  <button type="submit" className="btn-primary" disabled={loading} style={{ width: '100%', justifyContent: 'center', padding: '14px 0', fontSize: '1rem', opacity: loading ? 0.7 : 1 }}>
-                    {loading ? <><Loader size={16} style={{ animation: 'rotate 0.8s linear infinite' }} /> Registering...</> : <><Zap size={16} /> Complete Registration</>}
+                  <button type="submit" className="btn-primary" disabled={loading} style={{ width:'100%', justifyContent:'center', padding:'14px 0', fontSize:'1rem', opacity:loading?0.7:1, borderRadius:10 }}>
+                    {loading ? <><Loader size={16} style={{ animation:'rotate 0.8s linear infinite' }}/> Registering...</> : <><Zap size={16}/> Complete Registration</>}
                   </button>
                 </form>
               </div>
             </div>
           </div>
         </section>
+      </div>
+      <Footer />
+    </div>
+  )
+}
+
+function SuccessView({ form, onReset }) {
+  return (
+    <div style={{ background:'#F9F7F4', minHeight:'100vh' }}>
+      <Navbar />
+      <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', paddingTop:68 }}>
+        <div style={{ textAlign:'center', maxWidth:540, padding:40, animation:'fadeInUp 0.5s ease' }}>
+          <div style={{ width:88, height:88, borderRadius:'50%', background:'#F0FDF4', border:'2px solid #BBF7D0', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 28px', boxShadow:'0 0 0 8px rgba(34,197,94,0.08)' }}>
+            <CheckCircle size={44} style={{ color:'#22C55E' }} />
+          </div>
+          <h1 style={{ fontFamily:'var(--font-display)', fontSize:'2rem', fontWeight:800, color:'#0F172A', marginBottom:14 }}>
+            Registration <span className="gradient-text">Successful!</span>
+          </h1>
+          <p style={{ color:'#6B7280', lineHeight:1.7, marginBottom:32, fontSize:'1rem' }}>
+            Thank you, <strong style={{ color:'#0F172A' }}>{form.student_name}</strong>! You've registered for <strong style={{ color:'#4F46E5' }}>{form.event_name}</strong> at VSpark 2025.
+          </p>
+          <div style={{ background:'#fff', border:'1px solid #E5E7EB', borderRadius:16, padding:24, marginBottom:28, textAlign:'left', boxShadow:'0 2px 8px rgba(0,0,0,0.05)' }}>
+            <h3 style={{ fontFamily:'var(--font-display)', fontWeight:700, fontSize:'0.95rem', color:'#0F172A', marginBottom:16 }}>Registration Details</h3>
+            {[['Name',form.student_name],['Email',form.email],['Reg. No.',form.reg_number],['Department',form.department],['Event',form.event_name],['Date','December 10, 2025'],['Venue','COMSATS University, Vehari Campus']].map(([k,v])=>(
+              <div key={k} style={{ display:'flex', justifyContent:'space-between', padding:'8px 0', borderBottom:'1px solid #F3F4F6', fontSize:'0.875rem' }}>
+                <span style={{ color:'#9CA3AF' }}>{k}</span><span style={{ fontWeight:600, color:'#374151', textAlign:'right' }}>{v}</span>
+              </div>
+            ))}
+          </div>
+          <div style={{ display:'flex', gap:12, flexWrap:'wrap', justifyContent:'center' }}>
+            <button onClick={onReset} className="btn-primary" style={{ borderRadius:10 }}>Register for Another Event</button>
+            <a href="/" className="btn-outline" style={{ borderRadius:10 }}>Back to Home</a>
+          </div>
+        </div>
       </div>
       <Footer />
     </div>
