@@ -97,15 +97,38 @@ function TimeSlotsTab() {
   const [modal, setModal] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({ label: '', start_time: '', end_time: '', event_date: '' });
+  const [mainEvent, setMainEvent] = useState(null);
 
-  const load = () => supabase.from('time_slots').select('*').order('event_date').order('start_time').then(({ data }) => setSlots(data || []));
+  const load = async () => {
+    const { data: slotsData } = await supabase.from('time_slots').select('*').order('event_date').order('start_time');
+    setSlots(slotsData || []);
+
+    const { data: mainEvt } = await supabase.from('events').select('title, date').eq('is_main_event', true).single();
+    if (mainEvt) setMainEvent(mainEvt);
+  };
+  
   useEffect(() => { load(); }, []);
 
+  const openNew = () => {
+    setForm({ 
+      label: '', 
+      start_time: '', 
+      end_time: '', 
+      event_date: mainEvent?.date || '' 
+    });
+    setEditing(null);
+    setModal(true);
+  };
+
   const save = async () => {
-    if (!form.label || !form.start_time || !form.end_time || !form.event_date) { toast.error('All fields required'); return; }
+    if (!form.label || !form.start_time || !form.end_time || !form.event_date) {
+      toast.error('All fields required');
+      return;
+    }
     const { error } = editing
       ? await supabase.from('time_slots').update(form).eq('id', editing)
       : await supabase.from('time_slots').insert([form]);
+    
     if (error) { toast.error('Save failed'); return; }
     toast.success(editing ? 'Slot updated!' : 'Slot added!');
     setModal(false); setEditing(null); load();
@@ -120,8 +143,15 @@ function TimeSlotsTab() {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="font-sora font-bold text-xl text-gray-900">Time Slots</h2>
-        <button className="btn-primary text-sm" onClick={() => { setForm({ label: '', start_time: '', end_time: '', event_date: '' }); setEditing(null); setModal(true); }}>
+        <div>
+          <h2 className="font-sora font-bold text-xl text-gray-900">Time Slots</h2>
+          {mainEvent && (
+            <p className="text-[11px] text-amber-600 font-bold mt-1 flex items-center gap-1">
+              <Zap size={10} fill="currentColor" /> Syncing with Main Event: {mainEvent.title}
+            </p>
+          )}
+        </div>
+        <button className="btn-primary text-sm" onClick={openNew}>
           <Plus size={14} /> Add Slot
         </button>
       </div>
@@ -157,9 +187,20 @@ function TimeSlotsTab() {
             {[['label', 'Slot Label', 'text'], ['event_date', 'Event Date', 'date'], ['start_time', 'Start Time', 'time'], ['end_time', 'End Time', 'time']].map(([k, l, t]) => (
               <div key={k} className="mb-4">
                 <label className="block font-sora font-bold text-xs text-gray-500 uppercase tracking-widest mb-2">{l}</label>
-                <input type={t} value={form[k] || ''} onChange={e => setForm({ ...form, [k]: e.target.value })} className="admin-input" />
+                <input 
+                  type={t} 
+                  min={t === 'date' ? new Date().toISOString().split('T')[0] : ''}
+                  value={form[k] || ''} 
+                  onChange={e => setForm({ ...form, [k]: e.target.value })} 
+                  className="admin-input" 
+                />
               </div>
             ))}
+            {mainEvent && !editing && (
+              <p className="mb-4 text-[10px] text-amber-600 font-medium">
+                * Initialized with date from "{mainEvent.title}"
+              </p>
+            )}
             <button onClick={save} className="btn-primary w-full justify-center py-3">
               <Save size={14} /> {editing ? 'Update' : 'Add'} Slot
             </button>
@@ -223,10 +264,24 @@ function ScheduleTab() {
       max_capacity: parseInt(form.max_capacity) || 30,
       notes: form.notes || '',
     };
-    const { error } = editing
-      ? await supabase.from('schedules').update(payload).eq('id', editing)
-      : await supabase.from('schedules').upsert([payload], { onConflict: 'competition_id' });
-    if (error) { toast.error('Save failed: ' + error.message); return; }
+    // Sync with competitions table for public announcement
+    const selectedSlot = slots.find(s => s.id === payload.time_slot_id);
+    
+    const [schedRes, compRes] = await Promise.all([
+      editing
+        ? await supabase.from('schedules').update(payload).eq('id', editing)
+        : await supabase.from('schedules').upsert([payload], { onConflict: 'competition_id' }),
+      
+      // Update the actual competition with the announced date
+      supabase.from('competitions').update({
+        event_date: selectedSlot?.event_date,
+        date_announced: true
+      }).eq('id', payload.competition_id)
+    ]);
+
+    if (schedRes.error) { toast.error('Save failed: ' + schedRes.error.message); return; }
+    if (compRes.error) console.error('Comp sync failed:', compRes.error);
+
     toast.success(editing ? 'Schedule updated!' : 'Schedule saved!');
     setModal(false); setEditing(null); load();
   };

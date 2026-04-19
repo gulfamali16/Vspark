@@ -43,7 +43,7 @@ export default function Blogs() {
       <section className="pt-32 pb-16 px-4 text-center bg-gradient-to-b from-primary-50/60 to-transparent">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
           <span className="section-tag">News &amp; Updates</span>
-          <h1 className="font-sora font-black text-4xl md:text-5xl text-gray-900 mt-4 mb-4 leading-tight">
+          <h1 className="font-sora font-black text-3xl md:text-5xl text-gray-900 mt-4 mb-4 leading-tight">
             Blogs &amp; <span className="text-gradient">Achievements</span>
           </h1>
           <p className="text-gray-500 text-lg max-w-xl mx-auto leading-relaxed">
@@ -55,7 +55,7 @@ export default function Blogs() {
       {/* Achievements highlight strip */}
       {achievements.length > 0 && (
         <section className="max-w-6xl mx-auto px-4 mb-10">
-          <div className="bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200 border-l-4 border-l-yellow-500 rounded-3xl p-6">
+          <div className="bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200 border-l-4 border-l-yellow-500 rounded-3xl p-4 sm:p-6">
             <div className="flex items-center gap-3 mb-5">
               <div className="w-9 h-9 rounded-full bg-yellow-100 flex items-center justify-center">
                 <Trophy size={18} className="text-yellow-600" />

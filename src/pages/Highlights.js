@@ -41,7 +41,7 @@ export default function Highlights() {
         setHighlights(highlightsData?.length ? highlightsData : fallbackHighlights)
 
         const { data: compsData } = await supabase
-          .from('competitions').select('id, title, color').eq('is_active', true)
+          .from('competitions').select('id, title, color, event_date').eq('is_active', true)
         const compsLookup = {}
         compsData?.forEach(c => { compsLookup[c.id] = c })
         setCompetitions(compsLookup)
@@ -49,15 +49,25 @@ export default function Highlights() {
         const { data: resultsData } = await supabase
           .from('competition_results').select('*').eq('is_published', true)
           .order('announced_at', { ascending: false })
-        setResults(resultsData || [])
+        
+        // Only show results if the competition has actually happened (date <= today)
+        const today = new Date().toISOString().split('T')[0];
+        const filteredResults = (resultsData || []).filter(r => {
+          const comp = compsLookup[r.competition_id];
+          if (!comp || !comp.event_date) return false; // Hide if not scheduled
+          return comp.event_date <= today;
+        });
+
+        setResults(filteredResults);
       } catch (err) {
-        console.error('Error loading highlights:', err)
-        setHighlights(fallbackHighlights)
+        console.error('Error loading highlights:', err);
+        setHighlights(fallbackHighlights);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false)
-    }
-    loadData()
-  }, [])
+    };
+    loadData();
+  }, []);
 
   const tabs = [
     { id: 'highlights', label: 'Photos & Gallery', icon: ImageIcon },
@@ -113,7 +123,7 @@ export default function Highlights() {
                 <p className="text-gray-400 font-medium">No highlights yet. Come back after the event!</p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                 {highlights.map((h, i) => (
                   <motion.div key={h.id}
                     initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.04 }}
@@ -158,13 +168,14 @@ export default function Highlights() {
                   return (
                     <motion.div key={result.id}
                       initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
-                      className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden"
+                      onClick={() => setSelected(result)}
+                      className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"
                     >
                       {/* Card header */}
-                      <div className="px-7 py-5 border-b border-gray-100 flex items-center justify-between flex-wrap gap-3"
+                      <div className="px-5 sm:px-7 py-5 border-b border-gray-100 flex items-center justify-between flex-wrap gap-3"
                         style={{ borderLeftWidth: 4, borderLeftColor: comp?.color || '#4F46E5', borderLeftStyle: 'solid' }}>
                         <div>
-                          <h2 className="font-sora font-black text-xl text-gray-900">
+                          <h2 className="font-sora font-black text-lg md:text-xl text-gray-900">
                             {comp?.title || `Competition #${result.competition_id}`}
                           </h2>
                           <div className="flex gap-4 mt-1 text-sm text-gray-400 flex-wrap">
@@ -199,10 +210,9 @@ export default function Highlights() {
 
                         {/* Result image */}
                         {result.result_image_url && (
-                          <div className="mb-5 rounded-2xl overflow-hidden border border-gray-100 cursor-pointer"
-                            onClick={() => setSelected(result)}>
+                          <div className="mb-5 rounded-2xl overflow-hidden border border-gray-100">
                             <img src={result.result_image_url} alt="Result"
-                              className="w-full max-h-72 object-cover hover:scale-102 transition-transform duration-300" />
+                              className="w-full max-h-72 object-cover group-hover:scale-105 transition-transform duration-500" />
                           </div>
                         )}
 
@@ -229,45 +239,51 @@ export default function Highlights() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-gray-900/98 backdrop-blur-2xl z-[9999] flex flex-col lg:flex-row overflow-hidden"
+            className={`fixed inset-0 bg-gray-900/98 backdrop-blur-2xl z-[9999] flex flex-col lg:flex-row overflow-hidden ${
+              (!selected.image_url && !selected.result_image_url) ? 'justify-center items-center' : ''
+            }`}
           >
-            {/* ── Left: Image Viewer ── */}
-            <div className="flex-1 relative flex items-center justify-center bg-black/20 overflow-hidden">
-               {/* Image Container with Inner Zoom */}
-               <div 
-                 className={`relative w-full h-full flex items-center justify-center transition-all duration-500 ${isZoomed ? 'cursor-zoom-out' : 'cursor-zoom-in'}`}
-                 onClick={() => setIsZoomed(!isZoomed)}
-               >
-                  <motion.img 
-                    src={selected.image_url || selected.result_image_url} 
-                    alt="Gallery View"
-                    animate={{ 
-                      scale: isZoomed ? 1.8 : 1,
-                      x: isZoomed ? 0 : 0, // In a real pan we'd add drag, but scale is what they asked for
-                      y: isZoomed ? 0 : 0 
-                    }}
-                    transition={{ type: 'spring', damping: 25, stiffness: 120 }}
-                    className="max-w-full max-h-full object-contain pointer-events-none"
-                  />
-               </div>
+            {/* ── Left: Image Viewer (Only if image exists) ── */}
+            {(selected.image_url || selected.result_image_url) ? (
+              <div className="flex-1 relative flex items-center justify-center bg-black/20 overflow-hidden">
+                 {/* Image Container with Inner Zoom */}
+                 <div 
+                   className={`relative w-full h-full flex items-center justify-center transition-all duration-500 ${isZoomed ? 'cursor-zoom-out' : 'cursor-zoom-in'}`}
+                   onClick={() => setIsZoomed(!isZoomed)}
+                 >
+                    <motion.img 
+                      src={selected.image_url || selected.result_image_url} 
+                      alt="Gallery View"
+                      animate={{ 
+                        scale: isZoomed ? 1.8 : 1,
+                      }}
+                      transition={{ type: 'spring', damping: 25, stiffness: 120 }}
+                      className="max-w-full max-h-full object-contain pointer-events-none"
+                    />
+                 </div>
 
-               {/* Zoom Indicator/Toggle */}
-               <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-3 z-50">
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); setIsZoomed(!isZoomed); }}
-                    className="flex items-center gap-2 px-6 py-3 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white backdrop-blur-md transition-all shadow-2xl"
-                  >
-                    {isZoomed ? <ZoomOut size={18} /> : <ZoomIn size={18} />}
-                    <span className="text-xs font-bold uppercase tracking-widest">{isZoomed ? 'Fit Screen' : 'Zoom In'}</span>
-                  </button>
-               </div>
-            </div>
+                 {/* Zoom Indicator/Toggle */}
+                 <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-3 z-50">
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); setIsZoomed(!isZoomed); }}
+                      className="flex items-center gap-2 px-6 py-3 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white backdrop-blur-md transition-all shadow-2xl"
+                    >
+                      {isZoomed ? <ZoomOut size={18} /> : <ZoomIn size={18} />}
+                      <span className="text-xs font-bold uppercase tracking-widest">{isZoomed ? 'Fit Screen' : 'Zoom In'}</span>
+                    </button>
+                 </div>
+              </div>
+            ) : null}
 
             {/* ── Right: Info Sidebar ── */}
             <motion.div 
                initial={{ x: 100, opacity: 0 }}
                animate={{ x: 0, opacity: 1 }}
-               className="w-full lg:w-[450px] bg-white h-full flex flex-col shadow-[-20px_0_50px_rgba(0,0,0,0.2)]"
+               className={`h-full flex flex-col bg-white shadow-[-20px_0_50px_rgba(0,0,0,0.2)] ${
+                 (!selected.image_url && !selected.result_image_url) 
+                   ? 'w-full max-w-2xl rounded-3xl h-[85vh] m-6' 
+                   : 'w-full lg:w-[450px]'
+               }`}
             >
                {/* Sidebar Header */}
                <div className="p-8 border-b border-gray-100 flex items-center justify-between">
@@ -293,34 +309,122 @@ export default function Highlights() {
                </div>
 
                {/* Sidebar Content */}
-               <div className="flex-1 overflow-y-auto p-10 custom-scrollbar">
-                  <span className="badge-premium mb-6">Gallery Detail</span>
-                  <h2 className="font-sora font-black text-3xl text-gray-900 mb-8 leading-tight">
-                    {activeTab === 'results' ? 'Competition Winning Moment' : 'Event Highlight'}
-                  </h2>
+               <div className="flex-1 overflow-y-auto p-8 md:p-10 custom-scrollbar relative">
+                  {/* Celebration Background Sparkles (Only for Results) */}
+                  {selected.competition_id && (
+                    <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-20">
+                      {[1, 2, 3, 4, 5].map((_, i) => (
+                        <motion.div
+                          key={i}
+                          initial={{ y: "100%", opacity: 0 }}
+                          animate={{ 
+                            y: "-100%", 
+                            opacity: [0, 1, 0],
+                            x: [0, Math.sin(i) * 50, 0]
+                          }}
+                          transition={{ 
+                            duration: 3 + i, 
+                            repeat: Infinity, 
+                            delay: i * 0.5,
+                            ease: "linear" 
+                          }}
+                          className="absolute text-2xl"
+                          style={{ left: `${20 * i}%` }}
+                        >
+                          {['🏆', '⭐', '🎉', '✨', '🎖️'][i % 5]}
+                        </motion.div>
+                      ))}
+                    </div>
+                  )}
 
-                  <div className="space-y-8">
-                     <div>
-                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-4">Description</p>
-                        <p className="text-gray-600 text-lg leading-relaxed">
-                           {selected.description || selected.result_description || "An incredible moment captured at VSpark 2025, showcasing the talent and innovation of Pakistan's youth."}
-                        </p>
-                     </div>
+                  <div className="relative z-10">
+                    <span className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest mb-6 ${
+                      selected.competition_id 
+                        ? 'bg-yellow-100 text-yellow-700 border border-yellow-200' 
+                        : 'bg-primary-50 text-primary-600 border border-primary-100'
+                    }`}>
+                      {selected.competition_id ? (
+                        <>
+                          <Trophy size={14} className="animate-bounce" />
+                          Winner Showcase
+                        </>
+                      ) : (
+                        <>
+                          <ImageIcon size={14} />
+                          Gallery Detail
+                        </>
+                      )}
+                    </span>
 
-                     {activeTab === 'results' && (
-                        <div className="pt-8 border-t border-gray-100">
-                           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-6">Related Competition</p>
-                           <div className="bg-primary-50 rounded-2xl p-6 border border-primary-100">
-                             <Trophy className="text-primary-500 mb-3" size={24} />
-                             <p className="font-sora font-bold text-primary-700">Check full standings in the Results tab for more details.</p>
-                           </div>
-                        </div>
-                     )}
-                     
-                     <div className="pt-8 border-t border-gray-100">
-                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-4">Location</p>
-                        <p className="text-gray-500 text-sm font-medium">COMSATS University Islamabad, Vehari Campus</p>
-                     </div>
+                    <h2 className="font-sora font-black text-3xl text-gray-900 mb-8 leading-tight">
+                      {selected.competition_id 
+                        ? (competitions[selected.competition_id]?.title || 'Competition Winner') 
+                        : 'Event Highlight'}
+                    </h2>
+
+                    <div className="space-y-10">
+                       {/* Podium View (Only for Results) */}
+                       {selected.competition_id && (
+                          <div className="space-y-4">
+                             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-4">🏆 Official Standings</p>
+                             <div className="grid grid-cols-1 gap-3">
+                                {PLACE_CONFIG.map(({ key, emoji, label, bg, text, ring }) => {
+                                   const name = selected[`${key}_place`]
+                                   const uni  = selected[`${key}_university`]
+                                   if (!name) return null
+                                   return (
+                                      <motion.div 
+                                        key={key} 
+                                        initial={{ x: 20, opacity: 0 }}
+                                        animate={{ x: 0, opacity: 1 }}
+                                        transition={{ delay: 0.2 + (key === 'first' ? 0.1 : key === 'second' ? 0.2 : 0.3) }}
+                                        className={`${bg} rounded-2xl p-5 border-2 ${ring.replace('ring-', 'border-')} flex items-center gap-4 shadow-sm hover:scale-[1.02] transition-transform`}
+                                      >
+                                         <div className="text-3xl">{emoji}</div>
+                                         <div className="flex-1">
+                                            <p className={`text-[9px] font-black uppercase tracking-widest ${text} mb-0.5`}>{label}</p>
+                                            <p className="font-sora font-bold text-gray-900 text-base leading-tight">{name}</p>
+                                            {uni && <p className="text-gray-400 text-[10px] mt-0.5">{uni}</p>}
+                                         </div>
+                                      </motion.div>
+                                   )
+                                })}
+                             </div>
+                             {selected.cash_prize && (
+                                <div className="bg-emerald-50 rounded-2xl p-4 border border-emerald-100 flex items-center gap-3">
+                                   <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
+                                      <span className="font-bold">💰</span>
+                                   </div>
+                                   <div>
+                                      <p className="text-[9px] font-black uppercase tracking-widest text-emerald-600">Total Cash Prize</p>
+                                      <p className="font-sora font-bold text-emerald-700">{selected.cash_prize}</p>
+                                   </div>
+                                </div>
+                             )}
+                          </div>
+                       )}
+
+                       <div>
+                          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-4">
+                            {selected.competition_id ? 'Winning Story' : 'Description'}
+                          </p>
+                          <p className="text-gray-600 text-lg leading-relaxed">
+                             {selected.description || selected.result_description || "An incredible moment captured at VSpark, showcasing the talent and innovation of our participants."}
+                          </p>
+                       </div>
+                       
+                       <div className="pt-8 border-t border-gray-100">
+                          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-4">Event Context</p>
+                          <div className="flex flex-col gap-2">
+                             <p className="text-gray-500 text-sm font-medium">COMSATS University Islamabad, Vehari Campus</p>
+                             {selected.announced_at && (
+                                <p className="text-gray-400 text-xs italic">
+                                   Announced on {new Date(selected.announced_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                                </p>
+                             )}
+                          </div>
+                       </div>
+                    </div>
                   </div>
                </div>
 
@@ -328,9 +432,9 @@ export default function Highlights() {
                <div className="p-8 border-t border-gray-100 bg-gray-50/50">
                   <button 
                     onClick={() => setSelected(null)}
-                    className="btn-primary w-full justify-center"
+                    className={`btn-primary w-full justify-center ${selected.competition_id ? 'bg-yellow-600 hover:bg-yellow-700' : ''}`}
                   >
-                    Back to Highlights
+                    {selected.competition_id ? 'Back to Results' : 'Back to Highlights'}
                   </button>
                </div>
             </motion.div>

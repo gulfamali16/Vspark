@@ -59,7 +59,7 @@ export default function BlogDetail() {
         style={{ scaleX: 0 }} // This would normally be handled by a useScroll hook, for now keeping it static or simple
       />
 
-      <article className="pt-32 pb-24 px-4">
+      <article className="pt-32 pb-24 px-5 md:px-8">
         <div className="max-w-4xl mx-auto">
           {/* Back button */}
           <motion.div 
@@ -96,7 +96,7 @@ export default function BlogDetail() {
               </div>
             </div>
 
-            <h1 className="font-sora font-black text-3xl md:text-5xl lg:text-6xl text-gray-900 leading-[1.1] mb-8">
+            <h1 className="font-sora font-black text-3xl md:text-5xl text-gray-900 leading-[1.1] mb-8">
               {blog.title}
             </h1>
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, MapPin, Clock, Loader2, Megaphone } from 'lucide-react';
+import { Calendar, MapPin, Clock, Loader2, Megaphone, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -37,9 +37,9 @@ export default function Events() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
 
-      <section className="pt-40 pb-20 px-6 text-center bg-gradient-to-b from-primary-50 to-transparent">
+      <section className="pt-32 pb-16 px-4 text-center bg-gradient-to-b from-primary-50 to-transparent">
         <span className="badge-premium mb-6">Event Schedule</span>
-        <h1 className="font-sora font-black text-5xl md:text-6xl text-gray-900 mb-8">Events</h1>
+        <h1 className="font-sora font-black text-4xl md:text-6xl text-gray-900 mb-8">Events</h1>
 
         {/* Event Status Banner */}
         <div className={`inline-flex items-center gap-3 px-6 py-2.5 rounded-full border ${status.bg} ${status.border} mb-6 shadow-sm`}>
@@ -87,6 +87,7 @@ export default function Events() {
                   const isPast = ev.date && new Date(ev.date) < new Date();
                   
                   return (
+
                     <motion.div 
                       key={ev.id} 
                       initial={{ opacity: 0, y: 20 }}
@@ -94,23 +95,24 @@ export default function Events() {
                       viewport={{ once: true }}
                       transition={{ delay: i * 0.1 }}
                       className={`relative flex flex-col md:flex-row gap-6 md:gap-12 p-8 md:p-10 bg-white rounded-2xl border transition-all ${
+                        ev.is_main_event ? 'border-amber-400 shadow-glow bg-amber-50/10' :
                         isPast ? 'border-gray-200 opacity-60 bg-gray-50' : 'border-primary-100 shadow-sm hover:shadow-soft'
                       }`}
                     >
                       {/* Timeline Dot (Desktop) */}
                       {!isPast && (
-                         <div className="hidden md:flex absolute left-[108px] top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-primary-100 items-center justify-center z-10 border-4 border-white">
-                           <div className="w-2.5 h-2.5 rounded-full bg-primary-500"></div>
+                         <div className={`hidden md:flex absolute left-[108px] top-1/2 -translate-y-1/2 w-6 h-6 rounded-full ${ev.is_main_event ? 'bg-amber-100' : 'bg-primary-100'} items-center justify-center z-10 border-4 border-white`}>
+                           <div className={`w-2.5 h-2.5 rounded-full ${ev.is_main_event ? 'bg-amber-500' : 'bg-primary-500'}`}></div>
                          </div>
                       )}
 
                       {/* Date block */}
                       <div className="md:w-32 flex-shrink-0 flex md:flex-col items-center md:items-start gap-4 md:gap-0 justify-between md:justify-center border-b md:border-b-0 border-gray-100 pb-4 md:pb-0">
                         <div className="text-center md:text-left">
-                          <div className={`font-sora font-bold text-5xl md:text-6xl ${isPast ? 'text-gray-400' : 'text-primary-600'} leading-none mb-2`}>
+                          <div className={`font-sora font-bold text-5xl md:text-6xl ${ev.is_main_event ? 'text-amber-600' : isPast ? 'text-gray-400' : 'text-primary-600'} leading-none mb-2`}>
                             {ev.date ? new Date(ev.date).getDate() : '—'}
                           </div>
-                          <div className={`font-bold tracking-widest uppercase ${isPast ? 'text-gray-400' : 'text-gray-900'} text-sm`}>
+                          <div className={`font-bold tracking-widest uppercase ${ev.is_main_event ? 'text-amber-700' : isPast ? 'text-gray-400' : 'text-gray-900'} text-sm`}>
                             {ev.date ? new Date(ev.date).toLocaleDateString('en-US', { month: 'short' }) : ''}
                           </div>
                           {ev.date && (
@@ -120,17 +122,28 @@ export default function Events() {
                           )}
                         </div>
                         
-                        {/* Mobile Status Badge if next */}
-                        {!isPast && i === 0 && (
+                        {/* Status Badges */}
+                        {!isPast && (
                           <div className="md:hidden">
-                            <span className="badge-premium bg-primary-500 text-white border-transparent shadow-[0_0_15px_rgba(59,130,246,0.3)]">Next Event</span>
+                            {ev.is_main_event ? (
+                              <span className="badge-premium bg-amber-500 text-white border-transparent shadow-[0_0_15px_rgba(245,158,11,0.3)] flex items-center gap-1"><Zap size={10} fill="currentColor" /> Main Event</span>
+                            ) : i === 0 && (
+                              <span className="badge-premium bg-primary-500 text-white border-transparent shadow-[0_0_15px_rgba(59,130,246,0.3)]">Next Event</span>
+                            )}
                           </div>
                         )}
                       </div>
 
                       <div className="flex-1">
-                        <h3 className={`font-sora font-bold text-2xl mb-4 ${isPast ? 'text-gray-700' : 'text-gray-900'}`}>{ev.title}</h3>
-                        <p className="text-gray-600 leading-relaxed mb-6 font-medium bg-gray-50/50 p-4 rounded-lg border border-gray-50">{ev.description}</p>
+                        <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3 mb-4">
+                          <h3 className={`font-sora font-semibold text-xl md:text-2xl ${isPast ? 'text-gray-700' : 'text-gray-900'}`}>{ev.title}</h3>
+                          {ev.is_main_event && (
+                            <span className="inline-flex w-fit items-center gap-1 px-3 py-1 rounded-full bg-amber-100 text-amber-700 border border-amber-200 text-[10px] font-black uppercase tracking-widest animate-pulse">
+                              <Zap size={10} fill="currentColor" /> Main Day
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-gray-600 leading-relaxed mb-6 font-medium bg-gray-50/50 p-3 sm:p-4 rounded-lg border border-gray-50 text-sm md:text-base">{ev.description}</p>
                         
                         <div className="flex flex-wrap gap-4">
                           {ev.time && (

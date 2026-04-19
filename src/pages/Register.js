@@ -64,31 +64,49 @@ export default function Register() {
     manual_institute: '', focal_name: '', focal_contact: '', focal_email: '',
   });
 
-  useEffect(() => {
-    // Fetch Competitions
-    supabase.from('competitions').select('*').eq('is_active', true).order('title')
-      .then(({ data }) => {
-        setCompetitions(data || []);
-        if (preCompId) {
-          const id = parseInt(preCompId);
-          if (!isNaN(id)) setSelectedIds([id]);
-        }
-      });
-    
-    // Fetch Universities
-    supabase.from('universities').select('*').order('name')
-      .then(({ data }) => {
-        setUniversities(data || []);
-      });
+  const [mainEvent, setMainEvent] = useState(null);
+  const [loadingData, setLoadingData] = useState(true);
 
-    // Fetch Site Settings
-    supabase.from('site_settings').select('*').then(({ data }) => {
-      if (data) {
-        const s = {};
-        data.forEach(r => { s[r.key] = r.value; });
-        setSettings(s);
+  useEffect(() => {
+    const load = async () => {
+      setLoadingData(true);
+      try {
+        await Promise.all([
+          // Fetch Main Event
+          supabase.from('events').select('*').eq('is_main_event', true).maybeSingle()
+            .then(({ data }) => setMainEvent(data)),
+
+          // Fetch Competitions
+          supabase.from('competitions').select('*').eq('is_active', true).order('title')
+            .then(({ data }) => {
+              setCompetitions(data || []);
+              if (preCompId) {
+                const id = parseInt(preCompId);
+                if (!isNaN(id)) setSelectedIds([id]);
+              }
+            }),
+
+          // Fetch Universities
+          supabase.from('universities').select('*').order('name')
+            .then(({ data }) => setUniversities(data || [])),
+
+          // Fetch Site Settings
+          supabase.from('site_settings').select('*').then(({ data }) => {
+            if (data) {
+              const s = {};
+              data.forEach(r => { s[r.key] = r.value; });
+              setSettings(s);
+            }
+          })
+        ]);
+      } catch (err) {
+        console.error('Error loading registration data:', err);
+      } finally {
+        setLoadingData(false);
       }
-    });
+    };
+    
+    load();
   }, [preCompId]);
 
   const selectedComps = competitions.filter(c => selectedIds.includes(c.id));
@@ -205,6 +223,15 @@ export default function Register() {
     setSubmitting(false);
   };
 
+  if (loadingData) return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="text-center flex flex-col items-center">
+        <div className="w-10 h-10 border-4 border-primary-100 border-t-primary-500 rounded-full animate-spin mb-4" />
+        <p className="text-gray-500 font-medium">Initializing registration...</p>
+      </div>
+    </div>
+  );
+
   if (success) return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sora">
       <Navbar />
@@ -243,25 +270,27 @@ export default function Register() {
     <div className="min-h-screen bg-gray-50 font-sora">
       <Navbar />
       
-      {/* Hero Header */}
-      <section className="pt-40 pb-16 px-6 text-center bg-gradient-to-b from-primary-50/60 to-transparent">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <span className="section-tag">National Innovation Event</span>
-          <h1 className="font-black text-4xl md:text-5xl lg:text-6xl text-gray-900 mt-4 mb-6">
-            Register for <span className="text-gradient">VSpark</span>
+      <section className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-12">
+        <div className="mb-10 text-center lg:text-left">
+          <span className="badge-premium mb-4 flex items-center gap-1 justify-center lg:justify-start w-fit mx-auto lg:mx-0">
+            <Zap size={14} fill="currentColor" className="text-amber-500" /> {mainEvent ? 'Official Event Dashboard' : 'National Innovation Event'}
+          </span>
+          <h1 className="font-black text-3xl md:text-5xl lg:text-6xl text-gray-900 mb-4 leading-tight">
+            Register for <span className="text-gradient">{mainEvent?.title || 'VSpark'}</span>
           </h1>
-          <p className="text-gray-500 text-lg max-w-2xl mx-auto leading-relaxed font-medium">
-            Join 500+ participants from across the country. Select your university and competitions to get started.
+          <p className="text-gray-500 text-lg max-w-2xl mx-auto lg:mx-0 leading-relaxed font-medium">
+            {mainEvent?.date 
+              ? `Join us on ${new Date(mainEvent.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} at ${mainEvent.venue}. Register now to secure your spot!`
+              : "Join 500+ participants from across the country. Select your university and competitions to get started."
+            }
           </p>
-        </motion.div>
-      </section>
+        </div>
 
-      <section className="px-6 pb-24">
-        <form onSubmit={submit} className="max-w-4xl mx-auto grid lg:grid-cols-5 gap-8">
+        <form onSubmit={submit} className="grid lg:grid-cols-5 gap-8">
           
           {/* Main Form Area */}
           <div className="lg:col-span-3 space-y-8">
-            <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
+            <div className="bg-white rounded-3xl p-6 sm:p-10 md:p-14 shadow-sm border border-gray-100">
               <h3 className="font-bold text-xl text-gray-900 mb-8 flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-primary-100 text-primary-600 flex items-center justify-center"><User size={18}/></div>
                 Profile Details

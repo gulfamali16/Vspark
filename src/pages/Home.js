@@ -9,6 +9,7 @@ import {
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import ParticlesBg from '../components/ParticlesBg';
+import { supabase } from '../lib/supabase';
 
 const stats = [
   { icon: Users, value: '500+', label: 'Participants' },
@@ -97,6 +98,17 @@ function TeamCard({ member, isLead = false }) {
 }
 
 export default function Home() {
+  const [mainEvent, setMainEvent] = useState(null);
+
+  useEffect(() => {
+    supabase.from('events').select('*').eq('is_main_event', true).maybeSingle()
+      .then(({ data }) => setMainEvent(data));
+  }, []);
+
+  const eventDate = mainEvent ? new Date(mainEvent.date).toLocaleDateString('en-US', {
+    month: 'long', day: 'numeric', year: 'numeric'
+  }) : 'December 10, 2025';
+
   return (
     <div className="min-h-screen bg-gray-50 overflow-x-hidden">
       <ParticlesBg />
@@ -106,12 +118,14 @@ export default function Home() {
       <section className="relative min-h-screen flex items-center justify-center px-6 pt-32 pb-20 text-center overflow-hidden">
         {/* Background Image with Overlay */}
         <div className="absolute inset-0 z-0 scale-105 animate-slow-zoom">
-          <div className="absolute inset-0 bg-black/60 z-10" /> {/* Dark Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-transparent to-gray-50 z-15" /> {/* Bottom Fade */}
+          <div className="absolute inset-0 bg-black/60 z-10" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-transparent to-gray-50 z-15" />
           <img
             src="/images/hero slider.jpg"
             alt="Hero Background"
             className="w-full h-full object-cover"
+            fetchpriority="high"
+            loading="eager"
             onError={e => { e.target.style.display = 'none'; }}
           />
         </div>
@@ -129,14 +143,14 @@ export default function Home() {
             }}
           >
             <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.8 } } }}>
-              <h1 className="font-sora font-black text-6xl md:text-8xl lg:text-9xl tracking-tighter mb-4 text-white leading-none drop-shadow-2xl">
+              <h1 className="font-sora font-black text-5xl md:text-8xl lg:text-9xl tracking-tighter mb-4 text-white leading-none drop-shadow-2xl">
                 <span className="text-primary-500">V</span>SPARK
               </h1>
             </motion.div>
 
             <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.8 } } }} className="mb-8">
-              <span className="inline-block px-5 py-2 bg-primary-600/20 backdrop-blur-md border border-primary-400/30 text-primary-200 rounded-full text-xs md:text-sm font-bold tracking-widest uppercase shadow-lg shadow-black/20">
-                COMSATS University Islamabad • Vehari Campus
+              <span className="inline-block px-4 py-2 bg-primary-600/20 backdrop-blur-md border border-primary-400/30 text-primary-200 rounded-full text-[10px] md:text-sm font-bold tracking-widest uppercase shadow-lg shadow-black/20">
+                {eventDate} • {mainEvent?.venue || 'COMSATS University Islamabad'}
               </span>
             </motion.div>
 
@@ -178,11 +192,11 @@ export default function Home() {
               transition={{ delay: i * 0.1 }}
               className="text-center"
             >
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary-50 text-primary-600 mb-4 shadow-sm">
-                <Icon size={28} />
+              <div className="inline-flex items-center justify-center w-12 h-12 md:w-16 md:h-16 rounded-2xl bg-primary-50 text-primary-600 mb-4 shadow-sm">
+                <Icon size={24} className="md:w-7 md:h-7" />
               </div>
-              <div className="font-sora font-bold text-4xl md:text-5xl text-gray-900 mb-2">{value}</div>
-              <div className="text-xs font-bold text-gray-500 uppercase tracking-widest">{label}</div>
+              <div className="font-sora font-black text-3xl md:text-5xl text-gray-900 mb-1 md:mb-2">{value}</div>
+              <div className="text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-widest">{label}</div>
             </motion.div>
           ))}
         </div>

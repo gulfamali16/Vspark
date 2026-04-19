@@ -146,7 +146,7 @@ export default function AdminCompetitions() {
                   <label className="block font-sora font-bold text-xs text-gray-500 uppercase tracking-widest mb-2">Event Date & Time</label>
                   <input 
                     type="datetime-local" 
-                    min={new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().slice(0, 16)}
+                    min={new Date().toISOString().slice(0, 16)}
                     value={form.event_date || ''} 
                     onChange={e => setForm({ ...form, event_date: e.target.value })} 
                     className="admin-input" 

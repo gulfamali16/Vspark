@@ -50,42 +50,42 @@ export default function Department() {
       <Navbar />
 
       {/* Hero */}
-      <section className="pt-40 pb-16 px-6 text-center bg-gradient-to-b from-primary-50 to-transparent">
-        <span className="badge-premium mb-6">COMSATS University Islamabad · Vehari Campus</span>
-        <h1 className="font-sora font-black text-5xl md:text-6xl text-gray-900 mb-3">Computer Science</h1>
-        <h2 className="font-sora font-bold text-3xl text-primary-600 mb-6">Department</h2>
-        <p className="text-gray-600 max-w-xl mx-auto text-lg leading-relaxed">
+      <section className="pt-32 pb-12 px-5 text-center bg-gradient-to-b from-primary-50 to-transparent">
+        <span className="badge-premium mb-6 inline-block">COMSATS University Islamabad · Vehari Campus</span>
+        <h1 className="font-sora font-black text-3xl md:text-6xl text-gray-900 mb-3 leading-tight">Computer Science</h1>
+        <h2 className="font-sora font-bold text-xl md:text-3xl text-primary-600 mb-6">Department</h2>
+        <p className="text-gray-500 max-w-xl mx-auto text-base md:text-lg leading-relaxed font-medium">
           Shaping the next generation of technology leaders through world-class education, research, and innovation.
         </p>
       </section>
 
       {/* HOD Card */}
       {hod && (
-        <section className="px-6 pb-12">
+        <section className="px-5 pb-12">
           <div className="max-w-4xl mx-auto">
             <motion.div
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-              className="bg-white rounded-3xl border border-yellow-200 shadow-sm p-8 flex flex-col sm:flex-row gap-8 items-center relative overflow-hidden"
+              className="bg-white rounded-3xl border border-yellow-200 shadow-sm p-6 sm:p-8 flex flex-col md:flex-row gap-6 md:gap-8 items-center relative overflow-hidden"
             >
               {/* Gold accent */}
-              <div className="absolute top-0 left-0 w-2 h-full bg-yellow-400 rounded-l-3xl" />
+              <div className="absolute top-0 left-0 w-1.5 h-full bg-yellow-400 rounded-l-3xl" />
               
-              <div className="sm:pl-4 flex-shrink-0">
+              <div className="md:pl-4 flex-shrink-0">
                 {hod.image_url ? (
                   <img src={hod.image_url} alt={hod.name}
-                    className="w-28 h-28 rounded-full object-cover border-4 border-yellow-200 shadow-md" />
+                    className="w-24 h-24 md:w-28 md:h-28 rounded-full object-cover border-4 border-yellow-200 shadow-md" />
                 ) : (
-                  <div className="w-28 h-28 rounded-full bg-yellow-50 border-4 border-yellow-200 flex items-center justify-center shadow-md">
-                    <Star size={40} className="text-yellow-400" />
+                  <div className="w-24 h-24 md:w-28 md:h-28 rounded-full bg-yellow-50 border-4 border-yellow-200 flex items-center justify-center shadow-md">
+                    <Star size={36} className="text-yellow-400" />
                   </div>
                 )}
               </div>
 
-              <div className="flex-1 text-center sm:text-left">
+              <div className="flex-1 text-center md:text-left">
                 <span className="inline-block px-3 py-1 bg-yellow-50 text-yellow-700 border border-yellow-200 rounded-full text-[10px] font-bold tracking-widest uppercase mb-3">
                   Head of Department
                 </span>
-                <h2 className="font-sora font-black text-2xl text-gray-900 mb-1">{hod.name}</h2>
+                <h2 className="font-sora font-black text-xl md:text-2xl text-gray-900 mb-1 leading-none">{hod.name}</h2>
                 <p className="text-primary-600 font-semibold mb-3">{hod.designation} — {hod.specialization}</p>
                 {hod.bio && <p className="text-gray-600 leading-relaxed text-sm mb-4">{hod.bio}</p>}
                 <div className="flex gap-4 flex-wrap justify-center sm:justify-start">
@@ -248,14 +248,14 @@ export default function Department() {
                   <p className="text-gray-600 mb-8 leading-relaxed">
                     Celebrating the milestones and victories of the COMSATS CS Department community.
                   </p>
-                  <div className="grid sm:grid-cols-2 gap-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     {achievements.map((blog, i) => (
                       <motion.div key={blog.id}
                         initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: i * 0.07 }}
                       >
                         <Link to={`/blogs/${blog.id}`} className="block group">
-                          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 hover:shadow-soft hover:-translate-y-1 transition-all relative overflow-hidden">
+                          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:shadow-soft hover:-translate-y-1 transition-all relative overflow-hidden">
                             <div className="absolute left-0 top-0 w-1.5 h-full bg-yellow-400 rounded-l-2xl" />
                             <div className="flex items-start gap-4">
                               <div className="w-10 h-10 rounded-xl bg-yellow-50 border border-yellow-200 flex items-center justify-center flex-shrink-0">

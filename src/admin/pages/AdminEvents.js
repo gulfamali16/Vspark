@@ -4,7 +4,7 @@ import AdminSidebar from '../components/AdminSidebar';
 import { supabase } from '../../lib/supabase';
 import toast from 'react-hot-toast';
 
-const empty = { title: '', description: '', date: '', venue: '', image_url: '' };
+const empty = { title: '', description: '', date: '', venue: '', image_url: '', is_main_event: false };
 
 export default function AdminEvents() {
   const [events, setEvents] = useState([]);
@@ -12,7 +12,7 @@ export default function AdminEvents() {
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(empty);
 
-  const load = () => supabase.from('events').select('*').order('date').then(({ data }) => setEvents(data || []));
+  const load = () => supabase.from('events').select('*').order('is_main_event', { ascending: false }).order('date').then(({ data }) => setEvents(data || []));
   useEffect(() => { load(); }, []);
 
   const openNew = () => { setForm(empty); setEditing(null); setModal(true); };
@@ -20,9 +20,16 @@ export default function AdminEvents() {
 
   const save = async () => {
     if (!form.title || !form.date) { toast.error('Title and date required'); return; }
+    
+    // If this is set as main event, reset others first
+    if (form.is_main_event) {
+      await supabase.from('events').update({ is_main_event: false }).neq('id', -1);
+    }
+
     const { error } = editing
       ? await supabase.from('events').update(form).eq('id', editing)
       : await supabase.from('events').insert([form]);
+    
     if (error) { toast.error('Error saving'); return; }
     toast.success(editing ? 'Event updated!' : 'Event added!');
     setModal(false); load();
@@ -63,7 +70,14 @@ export default function AdminEvents() {
                   <span className="text-[9px] font-bold tracking-wider uppercase">{evt.date ? new Date(evt.date).toLocaleString('en-US', { month: 'short' }) : ''}</span>
                 </div>
                 <div>
-                  <h3 className="font-sora font-bold text-gray-900 text-base mb-1">{evt.title}</h3>
+                  <div className="flex items-center gap-3 mb-1">
+                    <h3 className="font-sora font-bold text-gray-900 text-base">{evt.title}</h3>
+                    {evt.is_main_event && (
+                      <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 border border-amber-200 text-[9px] font-black uppercase tracking-wider animate-pulse">
+                        <Zap size={10} fill="currentColor" /> Main Event
+                      </span>
+                    )}
+                  </div>
                   <p className="text-gray-500 text-sm">{evt.date} · {evt.venue}</p>
                 </div>
               </div>
@@ -88,7 +102,7 @@ export default function AdminEvents() {
                 <label className="block font-sora font-bold text-xs text-gray-500 uppercase tracking-widest mb-2">{label}</label>
                 <input 
                   type={type} 
-                  min={type === 'date' ? new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split('T')[0] : ''}
+                  min={type === 'date' ? new Date().toISOString().split('T')[0] : ''}
                   value={form[name] || ''} 
                   onChange={e => setForm({ ...form, [name]: e.target.value })}
                   placeholder={placeholder} 
@@ -101,6 +115,23 @@ export default function AdminEvents() {
               <textarea value={form.description || ''} onChange={e => setForm({ ...form, description: e.target.value })} rows={4}
                 className="admin-input resize-y" />
             </div>
+            <div className="flex gap-6 mb-6">
+               <label className="flex items-center gap-3 cursor-pointer group">
+                  <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${form.is_main_event ? 'bg-primary-500 border-primary-500' : 'border-gray-200 group-hover:border-primary-400'}`}>
+                     <input 
+                        type="checkbox" 
+                        className="hidden" 
+                        checked={form.is_main_event} 
+                        onChange={e => setForm({ ...form, is_main_event: e.target.checked })} 
+                     />
+                     {form.is_main_event && <Zap size={14} className="text-white" />}
+                  </div>
+                  <span className={`text-sm font-bold transition-colors ${form.is_main_event ? 'text-primary-600' : 'text-gray-500'}`}>
+                     Mark as Main Event (Master Anchor)
+                  </span>
+               </label>
+            </div>
+
             <button onClick={save} className="btn-primary w-full justify-center py-3">
               <Save size={16} /> {editing ? 'Update' : 'Create'} Event
             </button>

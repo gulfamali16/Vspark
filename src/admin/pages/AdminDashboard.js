@@ -132,9 +132,9 @@ export default function AdminDashboard() {
 
         {/* Recent requests — only show if has access */}
         {(hasAll || perms.includes('registrations')) && (
-          <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm">
-            <div className="flex items-center justify-between mb-8 pb-4 border-b border-gray-100">
-               <h2 className="font-sora font-bold text-xl text-gray-900 flex items-center gap-3">
+          <div className="bg-white p-5 sm:p-8 rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
+               <h2 className="font-sora font-bold text-lg md:text-xl text-gray-900 flex items-center gap-3">
                  <div className="w-8 h-8 rounded-full bg-primary-50 text-primary-600 flex items-center justify-center">
                    <Users size={16} />
                  </div>
@@ -148,26 +148,26 @@ export default function AdminDashboard() {
             {recent.length === 0
               ? <div className="text-center py-10 text-gray-400 font-medium border-2 border-dashed border-gray-100 rounded-xl">No requests yet.</div>
               : (
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto -mx-5 sm:mx-0">
                   <table className="w-full text-left border-collapse whitespace-nowrap">
                     <thead>
                       <tr>
-                        {['Name', 'Email', 'Institute', 'Competition', 'Status'].map(h => (
-                          <th key={h} className="px-4 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100">
-                            {h}
-                          </th>
-                        ))}
+                        <th className="px-5 sm:px-4 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100">Name</th>
+                        <th className="hidden sm:table-cell px-4 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100">Email</th>
+                        <th className="hidden md:table-cell px-4 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100">Institute</th>
+                        <th className="px-4 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100">Competition</th>
+                        <th className="px-4 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 text-right">Status</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">
                       {recent.map(r => (
                         <tr key={r.id} className="hover:bg-gray-50 transition-colors">
-                          <td className="px-4 py-4 text-sm font-bold text-gray-900">{r.student_name}</td>
-                          <td className="px-4 py-4 text-sm text-gray-600">{r.email}</td>
-                          <td className="px-4 py-4 text-sm text-gray-600">{r.institute}</td>
-                          <td className="px-4 py-4 text-sm text-gray-600 font-medium">{r.competitions?.title || r.competition_id}</td>
-                          <td className="px-4 py-4">
-                            <span className={`px-3 py-1 text-xs font-bold rounded-lg border ${statusColor(r.status)}`}>
+                          <td className="px-5 sm:px-4 py-4 text-sm font-bold text-gray-900">{r.student_name}</td>
+                          <td className="hidden sm:table-cell px-4 py-4 text-sm text-gray-600">{r.email}</td>
+                          <td className="hidden md:table-cell px-4 py-4 text-sm text-gray-600">{r.institute}</td>
+                          <td className="px-4 py-4 text-sm text-gray-600 font-medium truncate max-w-[120px]">{r.competitions?.title || r.competition_id}</td>
+                          <td className="px-4 py-4 text-right">
+                            <span className={`px-2 py-1 text-[10px] font-bold rounded border ${statusColor(r.status)}`}>
                               {r.status?.toUpperCase()}
                             </span>
                           </td>

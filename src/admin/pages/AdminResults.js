@@ -31,7 +31,10 @@ export default function AdminResults() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const { data: comps } = await supabase.from('competitions').select('id, title, color').eq('is_active', true);
+      const { data: comps } = await supabase.from('competitions')
+        .select('id, title, color, event_date, date_announced')
+        .eq('is_active', true);
+      
       const lookup = {};
       comps?.forEach(c => { lookup[c.id] = c; });
       setCompetitions(lookup);
@@ -59,8 +62,17 @@ export default function AdminResults() {
       toast.error('Please select a competition');
       return;
     }
+
+    const selectedComp = competitions[formData.competition_id];
+    const today = new Date().toISOString().split('T')[0];
+    if (selectedComp && selectedComp.event_date > today) {
+      toast.error(`Cannot announce results yet! This competition is scheduled for ${selectedComp.event_date}.`);
+      return;
+    }
+
     if (!formData.first_place) {
-      toast.error('Please enter 1st place winner');
+      toast.error('Winner Details Missing: Please enter the 1st place winner name/team.');
+      // Simple UX: Focus the field if possible or just show toast
       return;
     }
 
@@ -214,16 +226,25 @@ export default function AdminResults() {
             <div className="space-y-5">
               {/* Competition Select */}
               <div>
-                <label className="block font-sora font-bold text-xs text-gray-500 uppercase tracking-widest mb-2">Competition *</label>
-                <select
-                  name="competition_id" value={formData.competition_id} onChange={handleInputChange} disabled={!!selected}
-                  className={`admin-input ${selected ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
-                >
-                  <option value="">Select Competition</option>
-                  {Object.entries(competitions).map(([id, comp]) => (
-                    <option key={id} value={id}>{comp.title}</option>
-                  ))}
-                </select>
+                  <label className="block font-sora font-bold text-xs text-gray-500 uppercase tracking-widest mb-2">Competition *</label>
+                  <select
+                    name="competition_id" value={formData.competition_id} onChange={handleInputChange} disabled={!!selected}
+                    className={`admin-input ${selected ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
+                  >
+                    <option value="">Select Competition</option>
+                    {Object.entries(competitions)
+                      .filter(([_, comp]) => {
+                        const today = new Date().toISOString().split('T')[0];
+                        return comp.date_announced && comp.event_date && comp.event_date <= today;
+                      })
+                      .map(([id, comp]) => (
+                        <option key={id} value={id}>{comp.title} (Concluded on {comp.event_date})</option>
+                      ))
+                    }
+                  </select>
+                  <p className="mt-2 text-[11px] text-gray-400 italic">
+                    Note: Competitions will only appear here after their scheduled date has passed.
+                  </p>
               </div>
 
               {/* Place Winners */}

@@ -83,10 +83,10 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
-      <section className="pt-40 pb-16 px-6 text-center bg-gradient-to-b from-primary-50 to-transparent">
+      <section className="pt-32 pb-12 px-6 text-center bg-gradient-to-b from-primary-50 to-transparent">
         <span className="badge-premium mb-6">Participant Access</span>
-        <h1 className="font-sora font-black text-5xl md:text-6xl text-gray-900 mb-4">Login</h1>
-        <p className="text-gray-600 max-w-md mx-auto text-lg leading-relaxed">
+        <h1 className="font-sora font-black text-4xl md:text-6xl text-gray-900 mb-4">Login</h1>
+        <p className="text-gray-600 max-w-md mx-auto text-base md:text-lg leading-relaxed">
           Use the credentials sent to your email after admin approval of your registration.
         </p>
       </section>
@@ -96,7 +96,7 @@ export default function Login() {
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-3xl p-8 md:p-10 shadow-soft border border-gray-100 mb-8"
+            className="bg-white rounded-3xl p-6 sm:p-8 md:p-10 shadow-soft border border-gray-100 mb-8"
           >
             <div className="text-center mb-8">
               <div className="w-16 h-16 rounded-2xl bg-primary-50 flex items-center justify-center mx-auto mb-4 border border-primary-100 shadow-sm">

@@ -27,14 +27,6 @@ const HERO_STATS = [
   { value: 100, suffix: '%', label: 'Free to Enter',       color: '#7C3AED' },
 ]
 
-const ABOUT_ROWS = [
-  { icon: <Calendar size={16} />,   label: 'Event Date',        value: 'December 10, 2025' },
-  { icon: <Trophy   size={16} />,   label: 'Competition Type',  value: 'National Level' },
-  { icon: <Users    size={16} />,   label: 'Open For',          value: 'CS, SE, IT, AI Students' },
-  { icon: <Star     size={16} />,   label: 'Special Feature',   value: 'Internship Program 2025' },
-  { icon: <TrendingUp size={16} />, label: 'Achievement',       value: '1st Place — Byte & Battle E-Gaming' },
-]
-
 function AnimatedCounter({ target, suffix = '', duration = 1800 }) {
   const [count, setCount] = useState(0)
   const ref     = useRef(null)
@@ -62,6 +54,38 @@ function AnimatedCounter({ target, suffix = '', duration = 1800 }) {
 }
 
 export default function Home() {
+  const [mainEvent, setMainEvent] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchMainEvent = async () => {
+      try {
+        const { data } = await supabase
+          .from('events')
+          .select('*')
+          .eq('is_main_event', true)
+          .maybeSingle()
+        if (data) setMainEvent(data)
+      } catch (err) {
+        console.error('Error fetching main event:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchMainEvent()
+  }, [])
+
+  const eventDate = mainEvent ? new Date(mainEvent.date).toLocaleDateString('en-US', {
+    month: 'long', day: 'numeric', year: 'numeric'
+  }) : 'To be announced'
+
+  const aboutRows = [
+    { icon: <Calendar size={16} />,   label: 'Event Date',        value: eventDate },
+    { icon: <Trophy   size={16} />,   label: 'Competition Type',  value: 'National Level' },
+    { icon: <Users    size={16} />,   label: 'Open For',          value: 'CS, SE, IT, AI Students' },
+    { icon: <Star     size={16} />,   label: 'Special Feature',   value: 'Internship Program 2025' },
+    { icon: <TrendingUp size={16} />, label: 'Achievement',       value: '1st Place — Byte & Battle E-Gaming' },
+  ]
   return (
     <div style={{ background: '#F9F7F4', minHeight: '100vh' }}>
       <Navbar />
@@ -88,7 +112,7 @@ export default function Home() {
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(79,70,229,0.08)', border: '1px solid rgba(79,70,229,0.2)', borderRadius: 100, padding: '6px 18px', marginBottom: 32, animation: 'fadeInUp 0.5s ease' }}>
             <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#22C55E', animation: 'pulse-ring 2s infinite' }} />
             <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 600, color: '#4F46E5', letterSpacing: '0.04em' }}>
-              December 10, 2025 · COMSATS Vehari Campus
+              {eventDate} · {mainEvent?.venue || 'COMSATS University Islamabad'}
             </span>
           </div>
 
@@ -177,7 +201,7 @@ export default function Home() {
                   <div style={{ fontSize: 13, color: '#9CA3AF', marginTop: 2 }}>COMSATS University Islamabad, Vehari Campus</div>
                 </div>
               </div>
-              {ABOUT_ROWS.map((item, i) => (
+              {aboutRows.map((item, i) => (
                 <div key={i} style={{ display: 'flex', gap: 14, alignItems: 'center', padding: '13px 0', borderBottom: i < 4 ? '1px solid #F9F7F4' : 'none' }}>
                   <div style={{ width: 32, height: 32, borderRadius: 8, background: '#EEF2FF', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4F46E5', flexShrink: 0 }}>
                     {item.icon}

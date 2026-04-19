@@ -38,13 +38,13 @@ export default function Navbar() {
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled || open ? 'glass shadow-sm py-3' : 'bg-transparent py-5'
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled || open ? 'glass shadow-sm py-1' : 'bg-transparent py-2'
           }`}
       >
         <div className="max-w-7xl mx-auto px-6 lg:px-8 flex items-center justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center group flex-shrink-0">
-            <img src="/images/vspark.png" alt="VSpark" className="h-20 md:h-20 w-auto object-contain" />
+            <img src="/images/vspark.png" alt="VSpark" className="h-14 md:h-16 w-auto object-contain" />
           </Link>
 
           {/* Desktop Nav */}
@@ -111,7 +111,7 @@ export default function Navbar() {
             transition={{ duration: 0.2 }}
             className="fixed inset-0 z-40 bg-white/95 backdrop-blur-xl lg:hidden pt-28 px-6 pb-6 overflow-y-auto flex flex-col"
           >
-            <div className="flex-1 flex flex-col gap-6">
+            <div className="flex-1 flex flex-col gap-4">
               {links.map((l, i) => {
                 const isActive = loc.pathname === l.to;
                 return (
@@ -123,7 +123,7 @@ export default function Navbar() {
                   >
                     <Link
                       to={l.to}
-                      className={`block text-3xl font-sora font-bold transition-colors ${isActive ? 'text-primary-600' : 'text-gray-800'
+                      className={`block text-2xl font-sora font-bold transition-colors ${isActive ? 'text-primary-600' : 'text-gray-800'
                         }`}
                     >
                       {l.label}
